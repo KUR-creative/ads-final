@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "rg_tree.h"
+ 
 typedef struct {
     int y;
     int x;
@@ -21,5 +22,6 @@ int main(void){
     //YXI* arr = malloc(sizeof(YXI) * 1000000);
 
     printf("end\n");
+    foo();
     return 0;
 }

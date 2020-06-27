@@ -1,0 +1,14 @@
+# cmake
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+Makefile
+
+# executables
+bench
+main
+test
+ptest
+
+# other's code
+rapidcheck/
