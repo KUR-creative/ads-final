@@ -1,27 +1,30 @@
+// map <F4> :wa<CR>:!make;./main;<CR>
 #include <stdio.h>
 #include <stdlib.h>
-#include "rg_tree.h"
- 
-typedef struct {
-    int y;
-    int x;
-    int i;
-} YXI;
 
-YXI arr[1000000]; 
-YXI* x_sorted[1000000]; // x sorted
-YXI* y_sorted[1000000]; // y sorted
+#include "common.h"
+#include "rg_tree.h"
+
+ 
+IXY ixys[1000000]; // i x y
+IXY* x_sorted[1000000]; // x sorted
+IXY* y_sorted[1000000]; // y sorted
 
 int main(void){
+    // Read file to ixys
+    read_inp("../data/pin_1.txt", ixys);
+    //read_inp("./fixtures/1.inp", ixys);
+
+    print_yxis(ixys, 10, "\n");
+    /*
     printf("start\n");
     printf("[%d]", sizeof(int));
-    printf("[%d]", sizeof(arr));
+    printf("[%d]", sizeof(ixys));
     printf("[%d]", sizeof(x_sorted));
     printf("[%d]", sizeof(y_sorted));
+    */
 
-    //YXI* arr = malloc(sizeof(YXI) * 1000000);
+    //IXY* ixys = malloc(sizeof(IXY) * 1000000);
 
-    printf("end\n");
-    foo();
     return 0;
 }
