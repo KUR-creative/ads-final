@@ -9,13 +9,22 @@
 #define PRNs(s)  printf(#s ": %s ", s)   
 #define PRNLs(s) printf(#s ": %s \n", s)   
 
+
 typedef struct {
     int i;
     int x;
     int y;
 } IXY;
 
-#endif//_COMMON_
+typedef struct {
+    int x;
+    int y;
+    int r;
+} XYR;
 
-int read_inp(const char* path, IXY ixys[]);
-void print_yxis(IXY ixys[], int len, const char* sep);
+
+int read_inp(const char* path, IXY ixys[], XYR xyrs[]);
+void print_ixys(IXY ixys[], int len, const char* sep);
+void print_xyrs(XYR xyrs[], int len, const char* sep);
+
+#endif//_COMMON_

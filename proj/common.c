@@ -35,11 +35,17 @@ void set_ixy(int nums[4], IXY ixys[]) { // +
 void del_ixy(int nums[4], IXY ixys[]) { // -
     int i = nums[1]; ixys[i].i = 0; // i = 0 means empty ixy
 }
+void set_rxy(int nums[4], XYR xyrs[], int idx) { // ?
+    int x = nums[1]; xyrs[idx].x = x;
+    int y = nums[2]; xyrs[idx].y = y;
+    int r = nums[3]; xyrs[idx].r = r;
+}
 
-int read_inp(const char* path, IXY ixys[])
+int read_inp(const char* path, IXY ixys[], XYR xyrs[])
 {
     char buf[64] = {0,};
     FILE* fp = fopen(path, "r");
+    int q_idx = 0;
     while(fgets(buf, sizeof buf, fp) != NULL){
         int nums[4];
         //PRNs(buf); puts("----------");
@@ -49,18 +55,27 @@ int read_inp(const char* path, IXY ixys[])
         switch(type){
             case '+': set_ixy(nums, ixys); break;
             case '-': del_ixy(nums, ixys); break;
-            case '?': break;
+            case '?': set_rxy(nums, xyrs, q_idx++); break;;
             default: puts("DATA error or something."); abort();
         }
     }
     return SUCCESS;
 }
 
-void print_yxis(IXY ixys[], int len, const char* sep)
+void print_ixys(IXY ixys[], int len, const char* sep)
 {
     for(int i = 0; i < len; i++){
         IXY yxi = ixys[i];
         printf("i:%d x:%d y:%d%s", 
                 yxi.i, yxi.x, yxi.y, sep);
+    }
+}
+
+void print_xyrs(XYR xyrs[], int len, const char* sep)
+{
+    for(int i = 0; i < len; i++){
+        XYR xyr = xyrs[i];
+        printf("x:%d y:%d r:%d%s", 
+                xyr.x, xyr.y, xyr.r, sep);
     }
 }
