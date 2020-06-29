@@ -12,3 +12,7 @@ ptest
 
 # other's code
 rapidcheck/
+
+# python
+.hypothesis
+__pycache__

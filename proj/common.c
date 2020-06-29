@@ -142,7 +142,7 @@ int solve_n_square(const IXY ixys[], XYR xyrs[])
                      &count_inner, &farthest_idx);
         xyrs[q_i].x = count_inner; // Number of points in circle.
         xyrs[q_i].y = farthest_idx; // Index of farthest point.
-        printf("xyrs:"); PRNd(count_inner), PRNLd(farthest_idx);
+        //printf("xyrs:"); PRNd(count_inner), PRNLd(farthest_idx);
     }
     return SUCCESS;
 }
