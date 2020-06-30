@@ -99,9 +99,12 @@ def run_pyprop(inp):
         ['./pyprop'], stdout=sp.PIPE,
         input=inp, encoding='ascii'
     )
-    nis = yaml.safe_load(p.stdout)
-    out = [(n, i) for n,i in nis]
-    return p.returncode, out
+    try:
+        nis = yaml.safe_load(p.stdout)
+        out = [(n, i) for n,i in nis]
+        return p.returncode, out
+    except:
+        return p.returncode, p.stdout
 
 @given(gen_small())
 def test_t(prob):
