@@ -74,18 +74,32 @@ def gen_small(draw):
         #rm_ixys=rm_ixys,
         #valid_ixys=valid_ixys,
 
-@st.composite
-def gen_big(draw):
-    idxes = draw(st.lists(
-        st.integers(min_value=1, max_value=1000000),
-        min_size=10000, max_size=1000000, unique=True))
-    return idxes
+def prob2inp(prob):
+    max_len = len(str(max(F.flatten(prob['ixys']))))
+    fmt = '{} {:>%d} {:>%d} {:>%d}' % ((max_len,) * 3)
+    rm_fmt = '- {:>%d}' % max_len
+    
+    add_lines = F.lmap(
+        lambda ixy: fmt.format('+', *ixy), prob['ixys'])
+    rm_lines = F.lmap(
+        lambda pos: rm_fmt.format(pos), prob['rm_positions'])
+    query_lines = F.lmap(
+        lambda xyr: fmt.format('?', *xyr), prob['xyrs'])
+    
+    lines = add_lines + rm_lines + query_lines
+    random.shuffle(lines)
+    return '\n'.join(lines)
 
-#@given(gen_big())
 @given(gen_small())
 def test_t(dat):
     print(dat)
     assert False
+
+'''
+print('{:>7}'.format(10))
+print('{:>10}'.format(2**32))
+print(prob2inp(gen_small().example()))
+'''
 
 def plot(prob):
     circles = F.lmap(
