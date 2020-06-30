@@ -1,3 +1,4 @@
+# map <F4> :wa<CR>:!rm pyprop;make;python prop_test.py<CR>
 import random
 import subprocess as sp
 
@@ -59,7 +60,8 @@ def gen_small(draw):
     def max_i(xyr, ixys):
         return(max(
             ixys,
-            key=tup(lambda i,x,y: (dist_sqr(xyr, (i,x,y)), i))
+            key=tup(lambda i,x,y: 
+                (dist_sqr(xyr, (i,x,y)), -i))
         )[0] if ixys else None)
         
     answers = F.lmap(
