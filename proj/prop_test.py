@@ -1,6 +1,7 @@
 # map <F4> :wa<CR>:!rm pyprop;make;python prop_test.py<CR>
 import random
 import subprocess as sp
+from collections import namedtuple
 
 import yaml
 import funcy as F
@@ -8,11 +9,16 @@ from hypothesis import given, example
 from hypothesis import strategies as st
 import matplotlib.pyplot as plt
 
+
+#----------------------------------------------------------------
 tup = lambda f: lambda argtup: f(*argtup)
 def unzip(seq):
     return zip(*seq)
 
-#def 
+#----------------------------------------------------------------
+IXY = namedtuple('IXY', 'i x y')
+XYR = namedtuple('XYR', 'x y r')
+
 @st.composite
 def gen_small(draw):
     # Points to add
@@ -25,17 +31,12 @@ def gen_small(draw):
         min_size=2, max_size=1000000,
         unique_by=lambda ixy:ixy[0]
     ))
-    
+
     # Points to delete 
     k = draw(st.integers(min_value=0, max_value=len(ixys) - 2))
     rm_positions = random.sample(list(range(len(ixys))), k)
     rm_ixys = [ixys[pos] for pos in rm_positions]
-    
-    valid_ixys = F.lremove(
-        lambda i: i is None,
-        [None if ixy in set(rm_ixys) else ixy
-         for ixy in ixys])
-    
+
     # Queries
     xyrs = draw(st.lists(
         st.tuples(
@@ -44,6 +45,23 @@ def gen_small(draw):
             st.integers(min_value=1, max_value=2**15)),
         min_size=2
     ))
+
+    # Build command sequence
+    cmds = [*F.map(tup(IXY), ixys), 
+            *rm_positions,
+            *F.lmap(tup(XYR), xyrs)]
+    random.shuffle(cmds)
+
+    # Command sequence blocks for query
+    q_blks = F.lfilter(
+        lambda cmds: type(cmds[-1]) is XYR,
+        F.sums([cmd] for cmd in cmds))
+    
+    #-------- rm below ---------
+    valid_ixys = F.lremove(
+        lambda i: i is None,
+        [None if ixy in set(rm_ixys) else ixy
+         for ixy in ixys])
     
     # Make Answer: O(N^2)
     @F.curry
