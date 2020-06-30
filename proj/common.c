@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,10 +56,9 @@ void buf2nums(char buf[], int nums[4]) {
     }
 }
 
-int read_inp(const char* path, IXY ixys[], XYR xyrs[])
+int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[])
 {
     char buf[64] = {0,};
-    FILE* fp = fopen(path, "r");
     int q_idx = 0;
     while(fgets(buf, sizeof buf, fp) != NULL){
         int nums[4];
@@ -76,6 +74,15 @@ int read_inp(const char* path, IXY ixys[], XYR xyrs[])
         }
     }
     return SUCCESS;
+}
+int read_inp(const char* path, IXY ixys[], XYR xyrs[])
+{
+    FILE* fp = fopen(path, "r");
+    if(!fp){
+        perror("File opening failed");
+        return FAILURE;
+    }
+    return read_inp_f(fp, ixys, xyrs);
 }
 
 //----------------------------------------------------------------

@@ -1,5 +1,7 @@
 import random
+import subprocess as sp
 
+import yaml
 import funcy as F
 from hypothesis import given, example
 from hypothesis import strategies as st
@@ -91,9 +93,20 @@ def prob2inp(prob):
     return '\n'.join(lines)
 
 @given(gen_small())
-def test_t(dat):
-    print(dat)
-    assert False
+def test_t(prob):
+    inp = prob2inp(prob)
+    #print(inp)
+    p = sp.run(
+        ['./pyprop'], stdout=sp.PIPE,
+        input=inp, encoding='ascii'
+    )
+    assert p.returncode == 0
+    
+    ans = prob['answers']
+    nis = yaml.load(p.stdout)
+    out = [(n, i) for n,i in nis]
+    #print('ans', ans); print('out', out)
+    assert out == ans
 
 '''
 print('{:>7}'.format(10))

@@ -1,6 +1,8 @@
 #ifndef _COMMON_
 #define _COMMON_
 
+#include <stdio.h>
+
 #define SUCCESS  0
 #define FAILURE  1
 #define MAX_LEN  1000000
@@ -20,6 +22,7 @@ typedef struct {
 } XYR;
 
 
+int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[]);
 int read_inp(const char* path, IXY ixys[], XYR xyrs[]);
 long d_sub_r(long x, long y, long cx, long cy, long r);
 int solve_n_square(const IXY ixys[], XYR xyrs[]);
