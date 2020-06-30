@@ -38,11 +38,13 @@ void set_xyr(int nums[4], XYR xyrs[], int idx) { // ?
 
 int tok2int(const char* tok) {
     if(tok == NULL){ return -1; }
+  printf("[%s]", tok);
     switch(tok[0]){
         case '+':
         case '-':
         case '?': return (int)tok[0];
-        default: return atoi(tok);
+        default: 
+                  return atoi(tok);
     }
 }
 
@@ -54,6 +56,8 @@ void buf2nums(char buf[], int nums[4]) {
         nums[idx++] = tok2int(tok);
         tok = strtok(NULL, " ");
     }
+    printf("\n---- %d %d %d %d ---- \n", 
+            nums[0], nums[1], nums[2], nums[3]);
 }
 
 int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[])
