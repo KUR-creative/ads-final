@@ -94,27 +94,30 @@ def prob2inp(prob):
     random.shuffle(lines)
     return '\n'.join(lines)
 
-@given(gen_small())
-def test_t(prob):
-    inp = prob2inp(prob)
-    #print(inp)
+def run_pyprop(inp):
     p = sp.run(
         ['./pyprop'], stdout=sp.PIPE,
         input=inp, encoding='ascii'
     )
-    assert p.returncode == 0
-    
-    ans = prob['answers']
-    nis = yaml.load(p.stdout)
+    nis = yaml.safe_load(p.stdout)
     out = [(n, i) for n,i in nis]
-    #print('ans', ans); print('out', out)
-    assert out == ans
+    return p.returncode, out
 
-'''
-print('{:>7}'.format(10))
-print('{:>10}'.format(2**32))
-print(prob2inp(gen_small().example()))
-'''
+@given(gen_small())
+def test_t(prob):
+    inp = prob2inp(prob)
+
+    ret, out = run_pyprop(inp)
+    assert ret == 0, out
+
+    ans = prob['answers']
+    assert ans == out
+
+prob={'answers': [(2, 1), (2, 1)],
+ 'inside_ixys': [[(1, 1, 1), (2, 1, 1)], [(1, 1, 1), (2, 1, 1)]],
+ 'ixys': [(1, 1, 1), (2, 1, 1)],
+ 'rm_positions': [],
+ 'xyrs': [(1, 1, 1), (1, 1, 1)]}
 
 def plot(prob):
     circles = F.lmap(
@@ -141,6 +144,10 @@ def plot(prob):
         for _,x,y in inside_ixys:
             plt.scatter(x, y, c='r')#, c=
     plt.show()
+
+print(prob['answers'])
+print(run_pyprop(prob2inp(prob))[1])
+#plot(prob)
 
 '''
 prob = {'answers': [(0, None),

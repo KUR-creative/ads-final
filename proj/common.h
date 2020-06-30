@@ -19,7 +19,7 @@ typedef struct {
 
 typedef struct {
     int x, y, r; // r = 0 means no xyr
-} XYR;
+} XYR; // union? QoA (Query or Answer?)
 
 
 int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[]);

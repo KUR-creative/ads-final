@@ -29,7 +29,7 @@ void set_ixy(int nums[4], IXY ixys[]) { // +
 void del_ixy(int nums[4], IXY ixys[]) { // -
     int i = nums[1]; ixys[i].i = 0; // i = 0 means no ixy
 }
-void set_rxy(int nums[4], XYR xyrs[], int idx) { // ?
+void set_xyr(int nums[4], XYR xyrs[], int idx) { // ?
     int x = nums[1]; xyrs[idx].x = x;
     int y = nums[2]; xyrs[idx].y = y;
     int r = nums[3]; xyrs[idx].r = r; // r = 0 means no xyr
@@ -69,7 +69,7 @@ int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[])
         switch(type){
             case '+': set_ixy(nums, ixys); break;
             case '-': del_ixy(nums, ixys); break;
-            case '?': set_rxy(nums, xyrs, q_idx++); break;;
+            case '?': set_xyr(nums, xyrs, q_idx++); break;;
             default: puts("DATA error or something."); abort();
         }
     }
