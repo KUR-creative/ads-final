@@ -124,6 +124,7 @@ void query_ans_n2(const IXY ixys[],
             }else if(diff == max_diff_in){
                 max_diff_in = diff;
                 far_idx = (idx < far_idx ? idx : far_idx);
+                //PRNd(idx); PRNd(far_idx);
             }
         }
     }
@@ -144,7 +145,7 @@ int solve_n_square(const IXY ixys[], XYR xyrs[])
         long r = xyrs[q_i].r;
 
         int count_inner = 0;
-        int farthest_idx = 0; // 0 means no answer.
+        int farthest_idx = MAX_LEN + 1; // invalid idx
         query_ans_n2(ixys, cx, cy, r, MAX_LEN,
                      &count_inner, &farthest_idx);
         xyrs[q_i].x = count_inner; // Number of points in circle.

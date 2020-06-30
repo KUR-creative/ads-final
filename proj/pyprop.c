@@ -21,7 +21,7 @@ IXY* y_sorted[1000000]; // y sorted
 int main(void){
     read_inp_f(stdin, ixys, xyrs);
     solve_n_square(ixys, xyrs);
-    print_xyrs(xyrs, 2, " ");
+    //print_xyrs(xyrs, 2, " ");
 
     //for(int i = 0; i < 10; i++){
     for(int i = 0; xyrs[i].r; i++){
