@@ -10,6 +10,7 @@ main
 test
 ptest
 pyprop
+*.so
 
 # other's code
 rapidcheck/
