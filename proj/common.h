@@ -9,6 +9,8 @@
 
 #define PRNd(x)  printf(#x ": %d ", x)   
 #define PRNLd(x) printf(#x ": %d \n", x)   
+#define PRNp(x)  printf(#x ": %p ", x)   
+#define PRNLp(x) printf(#x ": %p \n", x)   
 #define PRNs(s)  printf(#s ": %s ", s)   
 #define PRNLs(s) printf(#s ": %s \n", s)   
 

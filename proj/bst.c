@@ -58,6 +58,17 @@ int num_nodes(Node tree[]){
     return n;
 }
 
+static inline
+int is_full(const Node* node){
+    return (node->left && node->right);
+}
+
+// pos in tree
+static inline
+int next_pos(int n_node, const Node* tree, const IXY* ixy){
+    return n_node + (is_full(tree + n_node) ? 1 : 0);
+}
+
 // args:
 //  n_node: number of inner nodes in tree.
 //          n_node + 1 = index to insert new inode.
@@ -89,23 +100,33 @@ int insert(int n_node, Node tree[], char xORy,
     IXY new_ixy = ixys[iidx];
     if(n_node){
         // Search inode
-        int dst = 1;
-        if(tree[dst].left && tree[dst].right){
-        }else if(tree[dst].left){
-            tree[dst].right = leaf_index(new_ixy.i);
-            int l = abs(tree[dst].left);
-            int r = abs(tree[dst].right);
+        int pos = next_pos(n_node, tree, &new_ixy);
+                //PRNd(pos);
+        // Insert leaf
+        if(tree[pos].left && tree[pos].right){
+        }else if(tree[pos].left){
+            tree[pos].right = leaf_index(new_ixy.i);
+            int l = abs(tree[pos].left);
+            int r = abs(tree[pos].right);
             int l_val = GET_VAL(ixys[l], xORy);
             int r_val = GET_VAL(ixys[r], xORy);
             if(l_val > r_val){
-                SWAP(tree[dst].left, tree[dst].right, int);
+                SWAP(tree[pos].left, tree[pos].right, int);
             }
+        }else{
+            // link new elem with parent
+            // TODO: temporary implementation 
+            // just pass n = 3 != 2 case..
+            int new_val = GET_VAL(new_ixy, xORy);
+            tree[pos].value = new_val;
+            tree[pos].left = leaf_index(new_ixy.i);
         }
+        return 1;
     }else{ //empty
-        int dst = 1;
+        int pos = 1;
         int new_val = GET_VAL(new_ixy, xORy);
-        tree[dst].value = new_val;
-        tree[dst].left = leaf_index(new_ixy.i);
+        tree[pos].value = new_val;
+        tree[pos].left = leaf_index(new_ixy.i);
         return 1;
     }
 }
