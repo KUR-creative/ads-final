@@ -10,12 +10,13 @@
 
 //Properties
 // all_nodes result must be sorted in ascending order.
+// all leaves sorted in ascending in same criterion(x/y).
 // all_leaves(root) point ixy(neg idx), not inode.
-// parent must be positive value.
-// x/y then all leaves sorted in ascending x/y.
+// parent must be positive value except root.
 // largest (x/y) val of left subtree = root inode value.
+
+// delete elem not in the bst, no change.
 // range_search property
-// delete not in the bst, no change.
 
 //Structure
 // Use array<val,left,right,parent> to hold nodes

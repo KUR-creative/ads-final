@@ -82,8 +82,11 @@ def sparse_array(ixys):
     bst.make_sparse(len(ixys), dense_arr, sparse_arr)
     return sparse_arr
 
+def num_leaf(node):
+    return int(node.left < 0) + int(node.right < 0)
+
 @given(gen_ixys_mode())
-def test_all_inserted_elems_are_in_tree(ixys_mode):
+def test_prop__bst_insert(ixys_mode):
     '''
     print(ixys)
     for no,ixy in enumerate(ixy_arr):
@@ -94,10 +97,26 @@ def test_all_inserted_elems_are_in_tree(ixys_mode):
     ixy_arr = sparse_array(ixys)
     tree = (NODE * MAX_LEN)()
     n_node = -1
-    for i,x,y in ixys:
+    for n_inserted, (i,x,y) in enumerate(ixys):
         n_node = bst.insert(
             n_node, tree, mode, i, ixy_arr)
-    assert False
+
+        '''
+        num_leaves = 0
+        for idx in range(1, n_inserted + 1):# [0] always empty
+            num_leaves += num_leaf(tree[idx])
+        '''
+    # num of leaves = num of inserted ixys
+        num_leaves = sum(
+            map(num_leaf, tree[1:n_inserted+1]))
+        assert n_inserted == num_leaves
+
+    # All inodes must be sorted in ascending order.
+    # All leaves point ixy(neg idx), not inode.
+    # Parent must be positive value except root.
+    # Largest (x/y) val of left subtree = root inode val.
+
+    #print(F.lmap(pipe(pyobj,tuple),tree[:len(ixys)+3]))
 
 
 @pytest.mark.skip(reason='not now')
