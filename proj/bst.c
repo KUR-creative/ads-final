@@ -43,26 +43,58 @@ int leaf_index(int idx){
     return (idx > 0 ? -idx : idx);
 }
 
+static inline
+int num_nodes(Node tree[]){
+    int n = 0;
+    for(int idx = 1; 
+        tree[idx].parent != 0 && tree[idx].left != 0;
+        idx++){
+        n++;
+    }
+    return n;
+}
+
 // args:
 //  n_node: number of inner nodes in tree.
 //          -1 then it automatically calculated( O(N) )
 //          n_node + 1 = index to insert new inode.
 //  tree:   tree.
+//  xORy:   sort mode. 'x' or 'y'
 //  iidx:   idx of inserted elem in ixys.
 //  ixys:   ixy array.
+//
 // return: 
 //  number of inner nodes in tree after insertion.
+//  
+// precondition:
+//  n_node == # of elems in tree
+//  tree must be sorted in consistent 'x' or 'y'
+//
+// postcondition:
+//  ret >= n_node
 //
 // empty tree is 0 filled array of Node.
 // insert then: before length <= after length
-int insert(int n_node, Node tree[], char XorY,
+int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[])
 {
-    int new_pos = n_node + 1;
-    //tree[n_node] = //(IXY){1,2,3};
+    int new_pos = (
+        n_node == -1 ? num_nodes(tree) : n_node
+    ) + 1;
     IXY new_ixy = ixys[iidx];
-    tree[new_pos].value = (
-        XorY == 'x' ? new_ixy.x : new_ixy.y);
+    int new_val = (xORy == 'x' ? new_ixy.x : new_ixy.y);
+
+    tree[new_pos].value = new_val;
     tree[new_pos].left = leaf_index(new_ixy.i);
+
     return 1;
+}
+
+void make_sparse(int len_dense, IXY dense_arr[], 
+                 IXY sparse_arr[])
+{
+    for(int i = 0; i < len_dense; i++){
+        int idx = dense_arr[i].i;
+        sparse_arr[idx] = dense_arr[i];
+    }
 }
