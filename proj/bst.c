@@ -30,22 +30,17 @@
 #include "common.h"
 #include "bst.h"
 
-void c_square(int n, double *array_in, double *array_out)
-{ //return the square of array_in of length n in array_out
-    int i;
-
-    for (i = 0; i < n; i++)
-    {
-        array_out[i] = array_in[i] * array_in[i];
-    }
-}
-
 void print_arr(int n, Node arr[])
 {
     for(int i = 0; i < n; i++){
         printf("%d %d %d %d \n", arr[i].value,
             arr[i].parent, arr[i].left, arr[i].right);
     }
+}
+
+static inline 
+int leaf_index(int idx){
+    return (idx > 0 ? -idx : idx);
 }
 
 // args:
@@ -60,10 +55,14 @@ void print_arr(int n, Node arr[])
 //
 // empty tree is 0 filled array of Node.
 // insert then: before length <= after length
-int insert(int n_node, Node tree[], int iidx, IXY ixys[])
+int insert(int n_node, Node tree[], char XorY,
+           int iidx, IXY ixys[])
 {
     int new_pos = n_node + 1;
     //tree[n_node] = //(IXY){1,2,3};
-    tree[new_pos].value = 999;
+    IXY new_ixy = ixys[iidx];
+    tree[new_pos].value = (
+        XorY == 'x' ? new_ixy.x : new_ixy.y);
+    tree[new_pos].left = leaf_index(new_ixy.i);
     return 1;
 }
