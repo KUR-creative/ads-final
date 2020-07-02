@@ -12,6 +12,9 @@
 #define PRNs(s)  printf(#s ": %s ", s)   
 #define PRNLs(s) printf(#s ": %s \n", s)   
 
+#define SWAP(x, y, T) \
+    do { T SWAP = x; x = y; y = SWAP; } while (0)
+
 
 typedef struct {
     int i, x, y; // i = 0 means no ixy

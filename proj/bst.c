@@ -14,6 +14,8 @@
 // all_leaves(root) point ixy(neg idx), not inode.
 // parent must be positive value except root.
 // largest (x/y) val of left subtree = root inode value.
+// All ixy have unique index.
+// all leaves point 2 sorted ixy.
 
 // delete elem not in the bst, no change.
 // range_search property
@@ -28,8 +30,9 @@
 // naive
 // treap
 
-#include "common.h"
+#include <stdlib.h>
 #include "bst.h"
+
 
 void print_arr(int n, Node arr[])
 {
@@ -57,7 +60,6 @@ int num_nodes(Node tree[]){
 
 // args:
 //  n_node: number of inner nodes in tree.
-//          -1 then it automatically calculated( O(N) )
 //          n_node + 1 = index to insert new inode.
 //  tree:   tree.
 //  xORy:   sort mode. 'x' or 'y'
@@ -79,16 +81,33 @@ int num_nodes(Node tree[]){
 int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[])
 {
+    /*
     int new_pos = (
         n_node == -1 ? num_nodes(tree) : n_node
     ) + 1;
+    */
     IXY new_ixy = ixys[iidx];
-    int new_val = (xORy == 'x' ? new_ixy.x : new_ixy.y);
-
-    tree[new_pos].value = new_val;
-    tree[new_pos].left = leaf_index(new_ixy.i);
-
-    return 1;
+    if(n_node){
+        // Search inode
+        int dst = 1;
+        if(tree[dst].left && tree[dst].right){
+        }else if(tree[dst].left){
+            tree[dst].right = leaf_index(new_ixy.i);
+            int l = abs(tree[dst].left);
+            int r = abs(tree[dst].right);
+            int l_val = GET_VAL(ixys[l], xORy);
+            int r_val = GET_VAL(ixys[r], xORy);
+            if(l_val > r_val){
+                SWAP(tree[dst].left, tree[dst].right, int);
+            }
+        }
+    }else{ //empty
+        int dst = 1;
+        int new_val = GET_VAL(new_ixy, xORy);
+        tree[dst].value = new_val;
+        tree[dst].left = leaf_index(new_ixy.i);
+        return 1;
+    }
 }
 
 void make_sparse(int len_dense, IXY dense_arr[], 
