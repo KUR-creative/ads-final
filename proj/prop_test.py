@@ -8,6 +8,7 @@ import funcy as F
 from hypothesis import given, example
 from hypothesis import strategies as st
 import matplotlib.pyplot as plt
+import pytest
 
 
 #----------------------------------------------------------------
@@ -124,6 +125,7 @@ def run_pyprop(inp):
     except:
         return p.returncode, p.stdout
 
+@pytest.mark.skip(reason='not now')
 @given(gen_small())
 def test_t(prob):
     inp = prob2inp(prob)

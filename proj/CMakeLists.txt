@@ -19,5 +19,5 @@ add_executable(main main.c rg_tree.c common.c)
 # pyprop
 add_executable(pyprop pyprop.c rg_tree.c common.c)
 
-# bf
-add_library(bf SHARED bf.c)
+# bst
+add_library(bst SHARED bst.c)
