@@ -51,7 +51,7 @@ void print_arr(int n, Node arr[])
 // args:
 //  n_node: number of inner nodes in tree.
 //          -1 then it automatically calculated( O(N) )
-//          It can be index to insert new inode.
+//          n_node + 1 = index to insert new inode.
 //  tree:   tree.
 //  iidx:   idx of inserted elem in ixys.
 //  ixys:   ixy array.
@@ -62,7 +62,8 @@ void print_arr(int n, Node arr[])
 // insert then: before length <= after length
 int insert(int n_node, Node tree[], int iidx, IXY ixys[])
 {
+    int new_pos = n_node + 1;
     //tree[n_node] = //(IXY){1,2,3};
-    tree[n_node].value = 999;
+    tree[new_pos].value = 999;
     return 1;
 }

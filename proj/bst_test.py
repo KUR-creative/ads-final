@@ -6,7 +6,9 @@ from ctypes import c_double, c_int
 from collections import namedtuple
 
 import funcy as F
+import pytest
 
+pipe = F.rcompose
 def prop(p, obj=None):
     return(getattr(obj, p) if (isinstance(obj,tuple) and 
                                isinstance(p,str))
@@ -53,12 +55,26 @@ def pyobj(cobj):
     ctype = type(cobj); pytype = PYTYPE[ctype]
     props = F.lmap(prop, PROPS[ctype])
     return pytype(*map(lambda p: p(cobj), props))
+
 #--------------------------------------------------------
 def test_insert_1elem_then_len_is_1():
+    n_node = 0
     tree = (NODE * 10)()
-    ixys = (IXY * 10)(Ixy(), (1,2,3))
-    n_node = bst.insert(0, tree, 1, ixys)
-    print(list(tree))
+    ixys = (IXY * 10)(Ixy(), (1, 9,3))
+    n_node = bst.insert(n_node, tree, 1, ixys)
+    print(*map(pipe(pyobj,tuple),tree))
+    assert n_node == 1
+    assert pyobj(tree[1]) == Node(9, 0,-1,0)
 
-test_insert_1elem_then_len_is_1()
+@pytest.mark.skip(reason='not now')
+def test_insert_1elem_then_len_is_1_1():
+    n_node = -1
+    tree = (NODE * 10)()
+    ixys = (IXY * 10)(Ixy(), (1, 9,3))
+    n_node = bst.insert(n_node, tree, 1, ixys)
+    print(*map(pipe(pyobj,tuple),tree))
+    assert n_node == 1
+    assert pyobj(tree[1]) == Node(9, 0,-1,0)
+
+#test_insert_1elem_then_len_is_1()
 print(pyobj(NODE(1,2,3,-4)))
