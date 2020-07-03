@@ -75,8 +75,8 @@ void leaf_value(const Node* leaf, const IXY ixys[],
                 int* l_val, int* r_val, char xORy){
     int l = abs(leaf->left);
     int r = abs(leaf->right);
-    *l_val = GET_VAL(ixys[l], xORy);
-    *r_val = GET_VAL(ixys[r], xORy);
+    *l_val = KEY(ixys[l], xORy);
+    *r_val = KEY(ixys[r], xORy);
 }
 
 // args:
@@ -106,7 +106,7 @@ int insert(int n_node, Node tree[], char xORy,
 
     // Root case
     if(n_node == 0){
-        int new_val = GET_VAL(new_ixy, xORy);
+        int new_val = KEY(new_ixy, xORy);
         tree[1].value = new_val;
         tree[1].left = leaf_index(new_ixy.i);
         return 1;
@@ -138,7 +138,7 @@ int insert(int n_node, Node tree[], char xORy,
         // link new elem with parent
         // TODO: temporary implementation 
         // just pass n = 3 != 2 case..
-        int new_val = GET_VAL(new_ixy, xORy);
+        int new_val = KEY(new_ixy, xORy);
         tree[curr].value = new_val;
         tree[curr].left = leaf_index(new_ixy.i);
     }

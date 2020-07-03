@@ -13,7 +13,7 @@ typedef struct {
 } Node;
 // Binary Search Tree is array of Node.
 
-#define GET_VAL(ixy, mode) \
+#define KEY(ixy, mode) \
     (((mode) == 'x') ? (ixy).x : (ixy).y)
 int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[]);
