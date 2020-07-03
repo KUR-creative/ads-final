@@ -105,17 +105,22 @@ def is_tup_leaf(node):
     v,p,l,r = node
     return l <= 0 and r <= 0
 def leaf_ixy_idxes(tup_tree):
+    def ixy_idx(i):
+        return (i,) if i else ()
+    def leaf(l, r):
+        return ixy_idx(l) + ixy_idx(r)
     def ixy_idxes(node):
         v,p,l,r = node
-        #return 
         if is_tup_leaf(node):
-            return tuple(
-                ([l] if l else []) + ([r] if r else []))
+            return leaf(l, r)
         else:
-            return ( ixy_idxes(tup_tree[l])
-                   + ixy_idxes(tup_tree[r]) )
+            return ((ixy_idxes(tup_tree[l]) 
+                     if l > 0 else ixy_idx(l))
+                   +(ixy_idxes(tup_tree[r])
+                     if r > 0 else ixy_idx(r)))
     return ixy_idxes(tup_tree[1])
 
+'''
 # sorted in x
 xs = (Ixy(), Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
              Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
@@ -124,8 +129,11 @@ tt = (Node(), Node(1,  0, 0, 2), Node(3,  1, 3, 4),
 #tt = (Node(), Node())
 tt = (Node(), (1, 0, -1, 0), Node())
 tt = (Node(), (1, 0, -1, -4), Node())
+tt = [(0, 0, 0, 0), (1, 0, 2, -2), (1, 1, -1, -3), 
+      (0, 0, 0, 0), (0, 0, 0, 0)]
 print(leaf_ixy_idxes(tt))
 print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
+'''
 
 @given(gen_ixys_mode_map())
 def test_prop__bst_insert(ixys_mode_map):
@@ -156,15 +164,12 @@ def test_prop__bst_insert(ixys_mode_map):
     #   2. Get ixy idxes from tree structure
         ixy_idxes = leaf_ixy_idxes(
             tup_tree(tree[:n_inserted+4]))
-        #print(tup_tree(tree[:n_inserted+4]));
-        #print(ixy_idxes)
 
         # Inserted ixys preserved?
-        #print(ixy_idxes)
         no0idxes = F.compact([abs(i) for i in ixy_idxes])
         assert n_inserted == len(no0idxes), \
-            'n_inserted = {}, len(no0idxes) = {}'.format(
-                n_inserted, tup_tree(tree[:n_inserted+4]))
+            'ixy_idxes = {}, tup_tree = {}'.format(
+                ixy_idxes, tup_tree(tree[:n_inserted+4]))
 
         # All ixy have unique index.
         #assert len(set(no0idxes)) == n_inserted
@@ -178,13 +183,16 @@ def test_prop__bst_insert(ixys_mode_map):
                 r_val = prop(mode)(ixy_map[abs(r)])
                 assert l_val <= r_val  
 
+        #print(F.lmap(pipe(pyobj,tuple),tree[:len(ixys)+3]))
     # All inodes must be sorted in ascending order.
     # All leaves point ixy(neg idx), not inode.
     # Parent must be positive value except root.
     # Largest (x/y) val of left subtree = root inode val.
     # (When left subtree is not empty.)
 
-    #print(F.lmap(pipe(pyobj,tuple),tree[:len(ixys)+3]))
+    print('-------------------')
+    print(ixys)
+    print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
 
 
 @pytest.mark.skip(reason='not now')
