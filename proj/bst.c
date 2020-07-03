@@ -117,14 +117,15 @@ int insert(int n_node, Node tree[], char xORy,
 
     // Link inode
     // TODO: not prev, but parent!
-    if(curr == n_node + 1){ // new node. where? 
+    if(curr == n_node + 1){
         int prev = n_node; // previous index 
         int prev_left = abs(tree[prev].left);
         int new_val = KEY(ixys[prev_left], xORy);
-        // non leaf case..
+        // link current node
         tree[curr].parent = prev;
         tree[curr].value = new_val;
         tree[curr].left = tree[prev].left;
+        // link parent
         tree[prev].left = curr;
     }
 
@@ -140,14 +141,7 @@ int insert(int n_node, Node tree[], char xORy,
         if(l_val > r_val){
             SWAP(tree[curr].left, tree[curr].right, int);
         }
-    }else{
-        // ( ) <- N -> ( )
-        // link new elem with parent
-        // TODO: temporary implementation, duplicated.
-        // just pass n = 3 != 2 case..
-        
-        //int new_val = KEY(new_ixy, xORy);
-        //tree[curr].value = new_val;
+    }else{// ( ) <- N -> ( )
         tree[curr].left = leaf_index(new_ixy.i);
     }
 

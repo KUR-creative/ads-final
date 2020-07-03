@@ -49,27 +49,52 @@ def pyobj(cobj):
 MAX_LEN = 1000000
 
 #--------------------------------------------------------
-def test_insert_1elem_mode_x():
-    mode = c_char(b'x');
-    for n_node in [0]:
-        tree = (NODE * 10)()
-        ixys = (IXY * 10)(Ixy(), (1, 9,3))
+def num_leaf(NODE):
+    return int(NODE.left < 0) + int(NODE.right < 0)
+def is_leaf(NODE):
+    return NODE.left <= 0 and NODE.right <= 0
 
-        n_node = bst.insert(n_node, tree, mode, 1, ixys)
+def cobj2tuple(cobj): return pipe(pyobj,tuple)(cobj)
+def tup_tree(tree): return F.lmap(cobj2tuple, tree)
 
-        #print(*map(pipe(pyobj,tuple),tree))
-        assert n_node == 1
-        assert pyobj(tree[1]) == Node(9, 0,-1,0)
-def test_insert_1elem_mode_y():
-    mode = c_char(b'y');
-    for n_node in [0]:
-        tree = (NODE * 10)()
-        ixys = (IXY * 10)(Ixy(), (1, 9,3))
+def is_tup_leaf(node):
+    v,p,l,r = node
+    return l <= 0 and r <= 0
+def leaf_ixy_idxes(tup_tree):
+    ''' Gey ixy indexes in (tuple mapped) tree '''
+    def tup_or_empty(i):
+        return (i,) if i else ()
+    def leaf(l, r):
+        return (tup_or_empty(l) + tup_or_empty(r))
+    def node_or_leaf(i):
+        return (ixy_idxes(tup_tree[i])
+                if i > 0 else tup_or_empty(i))
+    def ixy_idxes(node):
+        v,p,l,r = node
+        return(leaf(l, r) if is_tup_leaf(node)
+          else node_or_leaf(l) + node_or_leaf(r))
+    return ixy_idxes(tup_tree[1])
 
-        n_node = bst.insert(n_node, tree, mode, 1, ixys)
+#--------------------------------------------------------
 
-        assert n_node == 1
-        assert pyobj(tree[1]) == Node(3, 0,-1,0)
+def test_leaf_ixy_idxes():
+    xs = (Ixy(), 
+          Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
+          Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
+    tt = (Node(), Node())
+    assert leaf_ixy_idxes(tt) == ()
+    tt = (Node(), 
+          Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
+          Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
+    assert leaf_ixy_idxes(tt) == (-5, -4, -8, -7)
+    tt = (Node(), (1, 0, -1, 0), Node())
+    assert leaf_ixy_idxes(tt) == (-1,)
+    tt = (Node(), (1, 0, -1, -4), Node())
+    assert leaf_ixy_idxes(tt) == (-1, -4)
+    tt = [(0, 0, 0, 0), (1, 0, 2, -2), (1, 1, -1, -3), 
+          (0, 0, 0, 0), (0, 0, 0, 0)]
+    assert leaf_ixy_idxes(tt) == (-1, -3, -2)
+    #print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
 
 @st.composite
 def gen_ixys_mode_map(draw):
@@ -93,56 +118,8 @@ def sparse_array(ixys):
     bst.make_sparse(len(ixys), dense_arr, sparse_arr)
     return sparse_arr
 
-def num_leaf(NODE):
-    return int(NODE.left < 0) + int(NODE.right < 0)
-def is_leaf(NODE):
-    return NODE.left <= 0 and NODE.right <= 0
-
-def cobj2tuple(cobj): return pipe(pyobj,tuple)(cobj)
-def tup_tree(tree):
-    return F.lmap(cobj2tuple, tree)
-def is_tup_leaf(node):
-    v,p,l,r = node
-    return l <= 0 and r <= 0
-def leaf_ixy_idxes(tup_tree):
-    def ixy_idx(i):
-        return (i,) if i else ()
-    def leaf(l, r):
-        return ixy_idx(l) + ixy_idx(r)
-    def ixy_idxes(node):
-        v,p,l,r = node
-        if is_tup_leaf(node):
-            return leaf(l, r)
-        else:
-            return ((ixy_idxes(tup_tree[l]) 
-                     if l > 0 else ixy_idx(l))
-                   +(ixy_idxes(tup_tree[r])
-                     if r > 0 else ixy_idx(r)))
-    return ixy_idxes(tup_tree[1])
-
-'''
-# sorted in x
-xs = (Ixy(), Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
-             Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
-tt = (Node(), Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
-              Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
-#tt = (Node(), Node())
-tt = (Node(), (1, 0, -1, 0), Node())
-tt = (Node(), (1, 0, -1, -4), Node())
-tt = [(0, 0, 0, 0), (1, 0, 2, -2), (1, 1, -1, -3), 
-      (0, 0, 0, 0), (0, 0, 0, 0)]
-print(leaf_ixy_idxes(tt))
-print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
-'''
-
 @given(gen_ixys_mode_map())
 def test_prop__bst_insert(ixys_mode_map):
-    '''
-    print(ixys)
-    for no,ixy in enumerate(ixy_arr):
-        if ixy.i != 0:
-            print(no, ':', ixy.i, ixy.x, ixy.y)
-    '''
     ixys, mode, ixy_map = ixys_mode_map
     xORy = c_char(mode.encode())
     ixy_arr = sparse_array(ixys)
@@ -164,13 +141,11 @@ def test_prop__bst_insert(ixys_mode_map):
     #   2. Get ixy idxes from tree structure
         ixy_idxes = leaf_ixy_idxes(
             tup_tree(tree[:n_inserted+4]))
-
-        # Inserted ixys preserved?
+        # Inserted number of ixys preserved?
         no0idxes = F.compact([abs(i) for i in ixy_idxes])
         assert n_inserted == len(no0idxes), \
             'ixy_idxes = {}, tup_tree = {}'.format(
                 ixy_idxes, tup_tree(tree[:n_inserted+4]))
-
         # All ixy have unique index.
         #assert len(set(no0idxes)) == n_inserted
 
@@ -183,7 +158,8 @@ def test_prop__bst_insert(ixys_mode_map):
                 r_val = prop(mode)(ixy_map[abs(r)])
                 assert l_val <= r_val  
 
-        #print(F.lmap(pipe(pyobj,tuple),tree[:len(ixys)+3]))
+        #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
+
     # All inodes must be sorted in ascending order.
     # All leaves point ixy(neg idx), not inode.
     # Parent must be positive value except root.
@@ -193,19 +169,3 @@ def test_prop__bst_insert(ixys_mode_map):
     print('-------------------')
     print(ixys)
     print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
-
-
-@pytest.mark.skip(reason='not now')
-def test_insert_2elem_mode_x_inc_order():
-    mode = c_char(b'x');
-    for n_node in [0]:
-        tree = (NODE * 10)()
-        ixys = (IXY * 10)(
-            Ixy(), (1, 9,3), Ixy(), (3, 10,2))
-
-        n_node = bst.insert(n_node, tree, mode, 1, ixys)
-        n_node = bst.insert(n_node, tree, mode, 3, ixys)
-
-        assert n_node == 1
-        assert pyobj(tree[1]) == Node(9, 0,-1,-3)
-
