@@ -45,6 +45,7 @@ def pyobj(cobj):
     return pytype(*map(lambda p: p(cobj), props))
 
 MAX_LEN = 1000000
+
 #--------------------------------------------------------
 def test_insert_1elem_mode_x():
     mode = c_char(b'x');
@@ -90,11 +91,35 @@ def sparse_array(ixys):
     bst.make_sparse(len(ixys), dense_arr, sparse_arr)
     return sparse_arr
 
-def num_leaf(node):
-    return int(node.left < 0) + int(node.right < 0)
+def num_leaf(NODE):
+    return int(NODE.left < 0) + int(NODE.right < 0)
+def is_leaf(NODE):
+    return NODE.left <= 0 and NODE.right <= 0
 
-def is_leaf(node):
-    return node.left <= 0 and node.right <= 0
+def cobj2tuple(cobj): return pipe(pyobj,tuple)(cobj)
+def tup_tree(tree):
+    return F.lmap(cobj2tuple, tree)
+def is_tup_leaf(node):
+    v,p,l,r = node
+    return l <= 0 and r <= 0
+def leaf_ixy_idxes(tup_tree):
+    def ixy_idxes(node):
+        v,p,l,r = node
+        if is_tup_leaf(node):
+            return (l, r) if p else ()
+        else:
+            return ( ixy_idxes(tup_tree[l])
+                   + ixy_idxes(tup_tree[r]) )
+    return ixy_idxes(tup_tree[1])
+
+# sorted in x
+xs = (Ixy(), Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
+             Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
+tt = (Node(), Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
+              Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
+#tt = (Node(), Node())
+#print(leaf_ixy_idxes(tt))
+#print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
 
 @given(gen_ixys_mode_map())
 def test_prop__bst_insert(ixys_mode_map):
@@ -114,14 +139,18 @@ def test_prop__bst_insert(ixys_mode_map):
         n_node = bst.insert(
             n_node, tree, xORy, i, ixy_arr)
 
-    # num of leaves = num of inserted ixys
+    # Num of leaves ixy ref = num of inserted ixys
+    #   1. Get ixy idxs from memory
         num_leaves = sum(
             map(num_leaf, tree[1:n_inserted+1]))
         assert n_inserted == num_leaves, \
             'n_inserted = {}, tree = {}'.format(
-                n_inserted, F.lmap(pipe(pyobj,tuple),
-                                   tree[:n_inserted+4]))
-    # all leaves point 2 sorted ixy.
+                n_inserted, tup_tree(tree[:n_inserted+4]))
+                                   
+    #   2. Get ixy idxs from tree structure
+        print(tup_tree(tree[:n_inserted+4]))
+        #assert False
+    # All leaves point ixy ref in ascending order.
         leaves = F.lfilter(is_leaf, tree[:n_inserted+4])
         for leaf in leaves:
             l = leaf.left; r = leaf.right

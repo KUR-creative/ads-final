@@ -132,7 +132,9 @@ int insert(int n_node, Node tree[], char xORy,
         tree[pos].left = leaf_index(new_ixy.i);
     }
 
-    /* // print tree for dbg
+    //*
+        // pass
+    /*/ // print tree for dbg
     printf("----------- %d -----------\n", pos);
     printf("ixy: {%d %d %d}\n", 
         new_ixy.i, new_ixy.x, new_ixy.y);
@@ -142,7 +144,7 @@ int insert(int n_node, Node tree[], char xORy,
             n.value, n.parent, n.left, n.right);
     }
     puts("");
-    */
+    //*/
 
     return pos;
 }
