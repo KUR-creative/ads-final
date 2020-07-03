@@ -67,8 +67,8 @@ def leaf_ixy_idxes(tup_tree):
     def leaf(l, r):
         return (tup_or_empty(l) + tup_or_empty(r))
     def node_or_leaf(i):
-        return (ixy_idxes(tup_tree[i])
-                if i > 0 else tup_or_empty(i))
+        return(ixy_idxes(tup_tree[i]) if i > 0 
+          else tup_or_empty(i))
     def ixy_idxes(node):
         v,p,l,r = node
         return(leaf(l, r) if is_tup_leaf(node)
@@ -124,6 +124,7 @@ def test_prop__bst_insert(ixys_mode_map):
     xORy = c_char(mode.encode())
     ixy_arr = sparse_array(ixys)
 
+    key = prop(mode)
     n_node = 0 # empty
     tree = (NODE * MAX_LEN)()
     for n_inserted, (i,x,y) in enumerate(ixys, start=1):
@@ -147,15 +148,21 @@ def test_prop__bst_insert(ixys_mode_map):
             'ixy_idxes = {}, tup_tree = {}'.format(
                 ixy_idxes, tup_tree(tree[:n_inserted+4]))
         # All ixy have unique index.
-        #assert len(set(no0idxes)) == n_inserted
+        assert len(set(no0idxes)) == n_inserted
+        # Inserted ixys are sorted in ascending order.
+        inserted_ixys = F.lmap(
+            lambda i: ixy_arr[abs(i)], ixy_idxes)
+        for ixy1, ixy2 in F.pairwise(inserted_ixys): 
+            assert key(ixy1) <= key(ixy2), 'tree = {}' \
+                .format(tup_tree(tree[:n_inserted+4]))
 
-    # All leaves point ixy ref in ascending order.
+    # All leaves: l <= r
         leaves = F.lfilter(is_leaf, tree[:n_inserted+4])
         for leaf in leaves:
             l = leaf.left; r = leaf.right
             if l and r:
-                l_val = prop(mode)(ixy_map[abs(l)])
-                r_val = prop(mode)(ixy_map[abs(r)])
+                l_val = key(ixy_map[abs(l)])
+                r_val = key(ixy_map[abs(r)])
                 assert l_val <= r_val  
 
         #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
@@ -166,6 +173,6 @@ def test_prop__bst_insert(ixys_mode_map):
     # Largest (x/y) val of left subtree = root inode val.
     # (When left subtree is not empty.)
 
-    print('-------------------')
-    print(ixys)
-    print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
+    #print('-------------------')
+    #print(ixys)
+    #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))

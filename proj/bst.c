@@ -112,15 +112,20 @@ int insert(int n_node, Node tree[], char xORy,
         return 1;
     }
 
-    // Assign memory
+    // Assign memory (when full)
     int curr = next_pos(n_node, tree, &new_ixy);
 
     // Link inode
     // TODO: not prev, but parent!
     if(curr == n_node + 1){
         int prev = n_node; // previous index 
+
         int prev_left = abs(tree[prev].left);
         int new_val = KEY(ixys[prev_left], xORy);
+
+        int l_val, r_val;
+        leaf_value(tree + curr, ixys, 
+                   &l_val, &r_val, xORy);
         // link current node
         tree[curr].parent = prev;
         tree[curr].value = new_val;
@@ -129,7 +134,7 @@ int insert(int n_node, Node tree[], char xORy,
         tree[prev].left = curr;
     }
 
-    // Insert leaf
+    // Save value to current node
     if(tree[curr].left && tree[curr].right){
         // l <- N -> r
     }else if(tree[curr].left || tree[curr].right){
