@@ -4,8 +4,8 @@
 #include "common.h"
 
 typedef struct {
-    int value, parent, left, right;
-    // value is x or y split value.
+    int key, parent, left, right;
+    // key is x or y split key.
     // p,l,r is index of array.
     // valid index > 0, 0 index means NULL.
     //  if l or r is (-), then idx of ixys.

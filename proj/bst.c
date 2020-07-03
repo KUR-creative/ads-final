@@ -12,8 +12,8 @@
 // all_nodes result must be sorted in ascending order.
 // all leaves sorted in ascending in same criterion(x/y).
 // all_leaves(root) point ixy(neg idx), not inode.
-// parent must be positive value except root.
-// largest (x/y) val of left subtree = root inode value.
+// parent must be positive idx except root.
+// largest (x/y) val of left subtree = root inode key.
 // All ixy have unique index.
 // all leaves point 2 sorted ixy.
 
@@ -23,9 +23,9 @@
 //Structure
 // Use array<val,left,right,parent> to hold nodes
 // inode struct points inode or elems in ixys.
-// point reference value is index of array.
+// point reference is index of array.
 // if neg idx, ref leaf. pos val, ref inode.
-// inode holds split value of x or y.(how to generalize?)
+// inode holds split key of x or y.(how to generalize?)
 
 // naive
 // treap
@@ -37,14 +37,16 @@
 void print_arr(int n, Node arr[])
 {
     for(int i = 0; i < n; i++){
-        printf("%d %d %d %d \n", arr[i].value,
+        printf("%d %d %d %d \n", arr[i].key,
             arr[i].parent, arr[i].left, arr[i].right);
     }
 }
 
+// TODO: remove it.
 static inline 
 int leaf_index(int idx){
     return (idx > 0 ? -idx : idx);
+    // return -abs(idx);
 }
 
 static inline
@@ -59,24 +61,34 @@ int num_nodes(Node tree[]){
 }
 
 static inline
+int is_empty(const Node* node){
+    return (node->left == 0) && (node->right == 0);
+}
+static inline
 int is_full(const Node* node){
     return (node->left && node->right);
 }
 
 // pos in tree
 // Memory management function for tree
+// TODO: remove it..
 static inline
 int next_pos(int n_node, const Node* tree, const IXY* ixy){
     return n_node + (is_full(tree + n_node) ? 1 : 0);
 }
 
 // if no value, then set to 0 (ixys[0] are {0, 0, 0}).
-void leaf_value(const Node* leaf, const IXY ixys[], 
-                int* l_val, int* r_val, char xORy){
+void leaf_key(const Node* leaf, const IXY ixys[],
+              char xORy, int* l_val, int* r_val){
     int l = abs(leaf->left);
     int r = abs(leaf->right);
     *l_val = KEY(ixys[l], xORy);
     *r_val = KEY(ixys[r], xORy);
+}
+
+static inline
+int is_leaf(const Node* node){
+    return node->left <= 0 && node->right <= 0;
 }
 
 // args:
@@ -102,18 +114,56 @@ void leaf_value(const Node* leaf, const IXY ixys[],
 int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[])
 {
-    IXY new_ixy = ixys[iidx];
+    IXY ixy = ixys[iidx];
+    int key = KEY(ixy, xORy);
 
     // Root case
     if(n_node == 0){
-        int new_val = KEY(new_ixy, xORy);
-        tree[1].value = new_val;
-        tree[1].left = leaf_index(new_ixy.i);
+        tree[1].key = key;
+        tree[1].left = -ixy.i;
         return 1;
     }
 
+    // Search indexes to insert ixy
+    int prev = 0;
+    int curr = 1;
+    while(! is_leaf(tree + curr)){
+        prev = curr;
+        if(key < tree[curr].key){
+            curr = tree[curr].left;
+        }else{
+            curr = tree[curr].right;
+        }
+    }
+    // Now: curr is leaf.
+    
+    int dst = curr;
+    if(is_full(tree + curr)){
+        n_node++; // Assign memory.
+        dst = n_node;
+        // Implement full case
+    }
+
+    // Save ixy idx
+    tree[dst].parent = prev; // TODO: or curr
+    if(is_empty(tree + dst)){
+        tree[dst].left = -ixy.i;
+    }else{ // l <- N ->( )
+        tree[dst].right = -ixy.i;
+        int lkey, rkey;
+        leaf_key(tree + dst, ixys, xORy, &lkey, &rkey);
+        if(lkey > rkey){
+            SWAP(tree[dst].left, tree[dst].right, int);
+        }
+    }
+
+    return n_node;
+    //puts("--------"); PRNd(prev);PRNd(curr);PRNLd(dst);
+
+    //*
+    /*/
     // Assign memory (when full)
-    int curr = next_pos(n_node, tree, &new_ixy);
+    int curr = next_pos(n_node, tree, &ixy);
 
     // Link inode
     // TODO: not prev, but parent!
@@ -124,11 +174,10 @@ int insert(int n_node, Node tree[], char xORy,
         int new_val = KEY(ixys[prev_left], xORy);
 
         int l_val, r_val;
-        leaf_value(tree + curr, ixys, 
-                   &l_val, &r_val, xORy);
+        leaf_key(tree + curr, ixys, xORy, &l_val, &r_val);
         // link current node
         tree[curr].parent = prev;
-        tree[curr].value = new_val;
+        tree[curr].key = new_val;
         tree[curr].left = tree[prev].left;
         // link parent
         tree[prev].left = curr;
@@ -139,31 +188,29 @@ int insert(int n_node, Node tree[], char xORy,
         // l <- N -> r
     }else if(tree[curr].left || tree[curr].right){
         // l <- N ->( )  or  ( ) <- N -> r
-        tree[curr].right = leaf_index(new_ixy.i);
+        tree[curr].right = -ixy.i;
         int l_val, r_val;
-        leaf_value(tree + curr, ixys, 
-                   &l_val, &r_val, xORy);
+        leaf_key(tree + curr, ixys, xORy, &l_val, &r_val);
         if(l_val > r_val){
             SWAP(tree[curr].left, tree[curr].right, int);
         }
     }else{// ( ) <- N -> ( )
-        tree[curr].left = leaf_index(new_ixy.i);
+        tree[curr].left = -ixy.i;
     }
+    */
 
     //*
     /*/ // print tree for dbg
     printf("----------- %d -----------\n", curr);
     printf("ixy: {%d %d %d}\n", 
-        new_ixy.i, new_ixy.x, new_ixy.y);
+        ixy.i, ixy.x, ixy.y);
     for(int i = 0; i < n_node + 5; i++){
         Node n = tree[i];
         printf("[%d: %d %d %d] ", 
-            n.value, n.parent, n.left, n.right);
+            n.key, n.parent, n.left, n.right);
     }
     puts("");
     //*/
-
-    return curr;
 }
 
 void make_sparse(int len_dense, IXY dense_arr[], 
