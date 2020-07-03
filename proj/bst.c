@@ -103,39 +103,49 @@ int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[])
 {
     IXY new_ixy = ixys[iidx];
-    int pos = 1;
-    if(n_node){
-        // Search inode
-        pos = next_pos(n_node, tree, &new_ixy);
-                //PRNd(pos);
-        // Insert leaf
-        if(tree[pos].left && tree[pos].right){
-        }else if(tree[pos].left){
-            tree[pos].right = leaf_index(new_ixy.i);
-            int l_val, r_val;
-            leaf_value(tree + pos, ixys, 
-                       &l_val, &r_val, xORy);
-            if(l_val > r_val){
-                SWAP(tree[pos].left, tree[pos].right, int);
-            }
-        }else{
-            // link new elem with parent
-            // TODO: temporary implementation 
-            // just pass n = 3 != 2 case..
-            int new_val = GET_VAL(new_ixy, xORy);
-            tree[pos].value = new_val;
-            tree[pos].left = leaf_index(new_ixy.i);
-        }
-    }else{ //empty
+
+    // Root case
+    if(n_node == 0){
         int new_val = GET_VAL(new_ixy, xORy);
-        tree[pos].value = new_val;
-        tree[pos].left = leaf_index(new_ixy.i);
+        tree[1].value = new_val;
+        tree[1].left = leaf_index(new_ixy.i);
+        return 1;
+    }
+
+    // Assign memory
+    int curr = next_pos(n_node, tree, &new_ixy);
+
+    // Link inode
+    if(curr == n_node + 1){ // new node. where? 
+        int prev = n_node; // previous index 
+        tree[curr].parent = prev;
+    }
+
+    // Insert leaf
+    if(tree[curr].left && tree[curr].right){
+        // l <- N -> r
+    }else if(tree[curr].left || tree[curr].right){
+        // l <- N ->( )  or  ( ) <- N -> r
+        tree[curr].right = leaf_index(new_ixy.i);
+        int l_val, r_val;
+        leaf_value(tree + curr, ixys, 
+                   &l_val, &r_val, xORy);
+        if(l_val > r_val){
+            SWAP(tree[curr].left, tree[curr].right, int);
+        }
+    }else{
+        // ( ) <- N -> ( )
+        // link new elem with parent
+        // TODO: temporary implementation 
+        // just pass n = 3 != 2 case..
+        int new_val = GET_VAL(new_ixy, xORy);
+        tree[curr].value = new_val;
+        tree[curr].left = leaf_index(new_ixy.i);
     }
 
     //*
-        // pass
     /*/ // print tree for dbg
-    printf("----------- %d -----------\n", pos);
+    printf("----------- %d -----------\n", curr);
     printf("ixy: {%d %d %d}\n", 
         new_ixy.i, new_ixy.x, new_ixy.y);
     for(int i = 0; i < n_node + 5; i++){
@@ -146,7 +156,7 @@ int insert(int n_node, Node tree[], char xORy,
     puts("");
     //*/
 
-    return pos;
+    return curr;
 }
 
 void make_sparse(int len_dense, IXY dense_arr[], 
