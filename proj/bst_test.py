@@ -107,8 +107,10 @@ def is_tup_leaf(node):
 def leaf_ixy_idxes(tup_tree):
     def ixy_idxes(node):
         v,p,l,r = node
+        #return 
         if is_tup_leaf(node):
-            return (l, r) if p else ()
+            return tuple(
+                ([l] if l else []) + ([r] if r else []))
         else:
             return ( ixy_idxes(tup_tree[l])
                    + ixy_idxes(tup_tree[r]) )
@@ -120,8 +122,10 @@ xs = (Ixy(), Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5),
 tt = (Node(), Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
               Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
 #tt = (Node(), Node())
-#print(leaf_ixy_idxes(tt))
-#print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
+tt = (Node(), (1, 0, -1, 0), Node())
+tt = (Node(), (1, 0, -1, -4), Node())
+print(leaf_ixy_idxes(tt))
+print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
 
 @given(gen_ixys_mode_map())
 def test_prop__bst_insert(ixys_mode_map):
@@ -156,12 +160,14 @@ def test_prop__bst_insert(ixys_mode_map):
         #print(ixy_idxes)
 
         # Inserted ixys preserved?
-        no0idxes = F.compact(
-            [ixys[abs(i)][0] for i in ixy_idxes])
-        assert n_inserted == len(no0idxes)
+        #print(ixy_idxes)
+        no0idxes = F.compact([abs(i) for i in ixy_idxes])
+        assert n_inserted == len(no0idxes), \
+            'n_inserted = {}, len(no0idxes) = {}'.format(
+                n_inserted, tup_tree(tree[:n_inserted+4]))
 
         # All ixy have unique index.
-        assert len(set(no0idxes)) == n_inserted
+        #assert len(set(no0idxes)) == n_inserted
 
     # All leaves point ixy ref in ascending order.
         leaves = F.lfilter(is_leaf, tree[:n_inserted+4])
