@@ -11,6 +11,8 @@ from hypothesis import strategies as st
 
 tup = lambda f: lambda argtup: f(*argtup)
 pipe = F.rcompose
+def go(x, *fs):
+    return pipe(*fs)(x)
 
 def prop(p, obj=None):
     return(getattr(obj, p) if (isinstance(obj,tuple) and 
@@ -147,9 +149,20 @@ def test_prop__bst_insert(ixys_mode_map):
             'n_inserted = {}, tree = {}'.format(
                 n_inserted, tup_tree(tree[:n_inserted+4]))
                                    
-    #   2. Get ixy idxs from tree structure
-        print(tup_tree(tree[:n_inserted+4]))
-        #assert False
+    #   2. Get ixy idxes from tree structure
+        ixy_idxes = leaf_ixy_idxes(
+            tup_tree(tree[:n_inserted+4]))
+        #print(tup_tree(tree[:n_inserted+4]));
+        #print(ixy_idxes)
+
+        # Inserted ixys preserved?
+        no0idxes = F.compact(
+            [ixys[abs(i)][0] for i in ixy_idxes])
+        assert n_inserted == len(no0idxes)
+
+        # All ixy have unique index.
+        assert len(set(no0idxes)) == n_inserted
+
     # All leaves point ixy ref in ascending order.
         leaves = F.lfilter(is_leaf, tree[:n_inserted+4])
         for leaf in leaves:
@@ -161,7 +174,6 @@ def test_prop__bst_insert(ixys_mode_map):
 
     # All inodes must be sorted in ascending order.
     # All leaves point ixy(neg idx), not inode.
-    # All ixy have unique index.
     # Parent must be positive value except root.
     # Largest (x/y) val of left subtree = root inode val.
     # (When left subtree is not empty.)
