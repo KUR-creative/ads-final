@@ -64,9 +64,19 @@ int is_full(const Node* node){
 }
 
 // pos in tree
+// Memory management function for tree
 static inline
 int next_pos(int n_node, const Node* tree, const IXY* ixy){
     return n_node + (is_full(tree + n_node) ? 1 : 0);
+}
+
+// if no value, then set to 0 (ixys[0] are {0, 0, 0}).
+void leaf_value(const Node* leaf, const IXY ixys[], 
+                int* l_val, int* r_val, char xORy){
+    int l = abs(leaf->left);
+    int r = abs(leaf->right);
+    *l_val = GET_VAL(ixys[l], xORy);
+    *r_val = GET_VAL(ixys[r], xORy);
 }
 
 // args:
@@ -92,24 +102,19 @@ int next_pos(int n_node, const Node* tree, const IXY* ixy){
 int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[])
 {
-    /*
-    int new_pos = (
-        n_node == -1 ? num_nodes(tree) : n_node
-    ) + 1;
-    */
     IXY new_ixy = ixys[iidx];
+    int pos = 1;
     if(n_node){
         // Search inode
-        int pos = next_pos(n_node, tree, &new_ixy);
+        pos = next_pos(n_node, tree, &new_ixy);
                 //PRNd(pos);
         // Insert leaf
         if(tree[pos].left && tree[pos].right){
         }else if(tree[pos].left){
             tree[pos].right = leaf_index(new_ixy.i);
-            int l = abs(tree[pos].left);
-            int r = abs(tree[pos].right);
-            int l_val = GET_VAL(ixys[l], xORy);
-            int r_val = GET_VAL(ixys[r], xORy);
+            int l_val, r_val;
+            leaf_value(tree + pos, ixys, 
+                       &l_val, &r_val, xORy);
             if(l_val > r_val){
                 SWAP(tree[pos].left, tree[pos].right, int);
             }
@@ -121,14 +126,25 @@ int insert(int n_node, Node tree[], char xORy,
             tree[pos].value = new_val;
             tree[pos].left = leaf_index(new_ixy.i);
         }
-        return 1;
     }else{ //empty
-        int pos = 1;
         int new_val = GET_VAL(new_ixy, xORy);
         tree[pos].value = new_val;
         tree[pos].left = leaf_index(new_ixy.i);
-        return 1;
     }
+
+    /* // print tree for dbg
+    printf("----------- %d -----------\n", pos);
+    printf("ixy: {%d %d %d}\n", 
+        new_ixy.i, new_ixy.x, new_ixy.y);
+    for(int i = 0; i < n_node + 5; i++){
+        Node n = tree[i];
+        printf("[%d: %d %d %d] ", 
+            n.value, n.parent, n.left, n.right);
+    }
+    puts("");
+    */
+
+    return pos;
 }
 
 void make_sparse(int len_dense, IXY dense_arr[], 
