@@ -69,14 +69,6 @@ int is_full(const Node* node){
     return (node->left && node->right);
 }
 
-// pos in tree
-// Memory management function for tree
-// TODO: remove it..
-static inline
-int next_pos(int n_node, const Node* tree, const IXY* ixy){
-    return n_node + (is_full(tree + n_node) ? 1 : 0);
-}
-
 // if no value, then set to 0 (ixys[0] are {0, 0, 0}).
 void leaf_key(const Node* leaf, const IXY ixys[],
               char xORy, int* l_val, int* r_val){
@@ -86,9 +78,19 @@ void leaf_key(const Node* leaf, const IXY ixys[],
     *r_val = KEY(ixys[r], xORy);
 }
 
+// TODO: remove it..
 static inline
 int is_leaf(const Node* node){
     return node->left <= 0 && node->right <= 0;
+}
+
+// next node in bst searching for new_key
+// ret: left or right
+// ret: (-)leaf, (0)empty leaf, (+)inode - go deeper
+// TODO: remove it..
+static inline
+int next_idx(const Node* n, int new_key){
+    return (n->key < new_key ? n->right : n->left);
 }
 
 // args:
@@ -115,49 +117,120 @@ int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[])
 {
     IXY ixy = ixys[iidx];
-    int key = KEY(ixy, xORy);
+    int nkey = KEY(ixy, xORy); // new key
 
     // Root case
     if(n_node == 0){
-        tree[1].key = key;
+        tree[1].key = nkey;
         tree[1].left = -ixy.i;
         return 1;
     }
 
+    /*   + <= prev
+     *  / \
+     * ?   + <= curr  (loop, curr is idx of tree.)
+     *
+     *   + <= prev
+     *  / \
+     * ?   -/0 = curr (break, curr is idx of ixys.)
+     */
+
     // Search indexes to insert ixy
     int prev = 0;
-    int curr = 1;
-    while(! is_leaf(tree + curr)){
+    int curr = 1; // root, curr = index of tree(+) or ixys(-)
+    char lORr;
+    while(curr > 0){
         prev = curr;
-        if(key < tree[curr].key){
-            curr = tree[curr].left;
+        if(tree[curr].key < nkey){
+            curr = tree[curr].right; lORr = 'r';
         }else{
-            curr = tree[curr].right;
+            curr = tree[curr].left; lORr = 'l';
         }
     }
-    // Now: curr is leaf.
+    // Now, curr is index of ixy or 0(empty) to insert ixy.
     
+    if(curr == 0){ // empty
+        /*   + <= prev
+         *  / \
+         * ?   0 = curr
+         */
+        if(lORr == 'l'){
+            tree[prev].left = -iidx;
+        }else{
+            tree[prev].right = -iidx;
+        }
+    }else{ // curr < 0 (full): Create new inode.
+        /*   + <= prev
+         *  / \
+         * ?   -old = curr (idx of ixys)
+         */
+        n_node++; // Assign memory.
+        int new = n_node;
+
+        // Link new node
+        if(lORr == 'l'){
+            tree[prev].left = new;
+        }else{
+            tree[prev].right = new;
+        }
+
+        // Write new node
+        int ckey = KEY(ixys[-curr], xORy);
+        tree[new].parent = prev;
+        if(ckey <= nkey){ // old_ixy <- old_key -> new_ixy
+            tree[new].key = ckey;
+            tree[new].left = curr;
+            tree[new].right = -iidx;
+        }else{            // new_ixy <- new_key -> old_ixy
+            tree[new].key = nkey;
+            tree[new].left = -iidx;
+            tree[new].right = curr;
+        }
+
+        /*   + <= prev
+         *  / \
+         * ?   k <= new
+         *    / \
+         *  -i   -o = curr (idx of ixys)
+         */
+    }
+
+    return n_node;
+    /* 
     int dst = curr;
     if(is_full(tree + curr)){
         n_node++; // Assign memory.
         dst = n_node;
         // Implement full case
-    }
-
-    // Save ixy idx
-    tree[dst].parent = prev; // TODO: or curr
-    if(is_empty(tree + dst)){
-        tree[dst].left = -ixy.i;
-    }else{ // l <- N ->( )
-        tree[dst].right = -ixy.i;
         int lkey, rkey;
         leaf_key(tree + dst, ixys, xORy, &lkey, &rkey);
-        if(lkey > rkey){
-            SWAP(tree[dst].left, tree[dst].right, int);
+        if(nkey <= lkey){       
+            // C1: N <- (N) -> (l)
+            //              l <- -> r
+        }else if(nkey <= rkey){
+            // C2: l <- (l) -> (N)
+            //              N <- -> r
+        }else{
+            // C3: l <- (l) -> (r)
+            //              r <- -> N
+        }
+    }else{
+        // Save ixy idx
+        tree[dst].parent = prev; // TODO: or curr
+        if(is_empty(tree + dst)){
+            tree[dst].left = -ixy.i;
+        }else{ // l <- N ->( )
+            tree[dst].right = -ixy.i;
+            int lkey, rkey;
+            leaf_key(tree + dst, ixys, xORy, &lkey, &rkey);
+            if(lkey > rkey){
+                SWAP(tree[dst].left, tree[dst].right, int);
+            }
         }
     }
+    */
 
-    return n_node;
+
     //puts("--------"); PRNd(prev);PRNd(curr);PRNLd(dst);
 
     //*

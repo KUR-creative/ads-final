@@ -27,7 +27,7 @@ def unzip(seq):
 #--------------------------------------------------------
 bst = CDLL('./libbst.so')
 
-NODE_props = 'value parent left right'.split()
+NODE_props = 'key parent left right'.split()
 class NODE(Structure):
     _fields_ = list(zip(NODE_props, F.repeat(c_int)))
 Node = namedtuple('Node', NODE_props, defaults=[0,0,0,0])
@@ -75,6 +75,45 @@ def leaf_ixy_idxes(tup_tree):
           else node_or_leaf(l) + node_or_leaf(r))
     return ixy_idxes(tup_tree[1])
 
+def all_inodes(tup_tree):
+    def inodes(node):
+        v,p,l,r = node
+        left  = inodes(tup_tree[l]) if l > 0 else []
+        right = inodes(tup_tree[r]) if r > 0 else []
+        return [*left, node, *right]
+    return inodes(tup_tree[1])
+
+'''
+xs = (Ixy(), 
+      Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
+      Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
+tt = (Node(), Node())
+print(all_inodes(tt))
+tt = (Node(), 
+      Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
+      Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
+print(all_inodes(tt))
+tt = (Node(), (1, 0, -1, 0), Node())
+print(all_inodes(tt))
+tt = [(0, 0, 0, 0), (1, 0, 2, -2), (1, 1, -1, -3), 
+      (0, 0, 0, 0), (0, 0, 0, 0)]
+print(all_inodes(tt))
+tt = [(0, 0, 0, 0), 
+      (1102486390, 0, 2, 9), (10, 1, -919041, 3), 
+      (56580, 2, 5, 4), (1088844602, 3, 6, -266226), 
+      (25473, 3, 7, -66049), (588888909, 4, -385079, -871170), 
+      (18858, 5, 8, -408489), (18182, 7, -708360, -54656), 
+      (1115410972, 1, -558753, -32704), (0, 0, 0, 0)]
+tt1= [(0, 0, 0, 0), 
+      (1, 0, 2, 9), (2, 1, -919041, 3), 
+      (3, 2, 5, 4), (4, 3, 6, -266226), 
+      (5, 3, 7, -66049), (6, 4, -385079, -871170), 
+      (7, 5, 8, -408489), (8, 7, -708360, -54656), 
+      (9, 1, -558753, -32704), (0, 0, 0, 0), 
+      (0, 0, 0, 0), (0, 0, 0, 0)]
+from pprint import pprint
+pprint(all_inodes(tt))
+'''
 #--------------------------------------------------------
 
 def test_leaf_ixy_idxes():
@@ -95,6 +134,7 @@ def test_leaf_ixy_idxes():
           (0, 0, 0, 0), (0, 0, 0, 0)]
     assert leaf_ixy_idxes(tt) == (-1, -3, -2)
     #print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
+
 
 @st.composite
 def gen_ixys_mode_map(draw):
@@ -138,6 +178,9 @@ def test_prop__bst_insert(ixys_mode_map):
         assert n_inserted == num_leaves, \
             'n_inserted = {}, tree = {}'.format(
                 n_inserted, tup_tree(tree[:n_inserted+4]))
+        # Parent must be positive value except root.
+        for i,node in enumerate(tree[1:n_inserted+1]):
+            assert node.parent >= 0, (n_inserted, i, pyobj(node))
                                    
     #   2. Get ixy idxes from tree structure
         ixy_idxes = leaf_ixy_idxes(
@@ -149,6 +192,11 @@ def test_prop__bst_insert(ixys_mode_map):
                 ixy_idxes, tup_tree(tree[:n_inserted+4]))
         # All ixy have unique index.
         assert len(set(no0idxes)) == n_inserted
+        # All leaves point ixy(neg idx), not inode.
+        assert all(idx <= 0 for idx in ixy_idxes), \
+            'ixy_idxes = {}, tree = {}'.format(
+                ixy_idxes, tup_tree(tree[:n_inserted+4]))
+
         # Inserted ixys are sorted in ascending order.
         inserted_ixys = F.lmap(
             lambda i: ixy_arr[abs(i)], ixy_idxes)
@@ -165,13 +213,25 @@ def test_prop__bst_insert(ixys_mode_map):
                 r_val = key(ixy_map[abs(r)])
                 assert l_val <= r_val  
 
-        #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
-
     # All inodes must be sorted in ascending order.
-    # All leaves point ixy(neg idx), not inode.
-    # Parent must be positive value except root.
+        inodes = all_inodes(tup_tree(tree[:n_inserted+4]))
+        for n1, n2 in F.pairwise(inodes):
+            k1 = n1[0]; k2 = n2[0]
+            assert k1 <= k2
+        # Inserted ixys are sorted in ascending order.
+        neg_idxeseq = F.mapcat(tup(
+            lambda k,p,l,r: 
+            ((l,) if l < 0 else ()) + ((r,) if r < 0 else ())),
+            inodes)
+        ixy_idxes = F.map(abs, neg_idxeseq)
+        saved_ixys = F.map(lambda i: pyobj(ixy_arr[i]), ixy_idxes)
+        keys = F.lmap(key, saved_ixys)
+        for k1,k2 in F.pairwise(keys):
+            assert k1 <= k2
+
     # Largest (x/y) val of left subtree = root inode val.
     # (When left subtree is not empty.)
+    # ㄴis this true? or important? TODO: remove it?
 
     #print('-------------------')
     #print(ixys)
