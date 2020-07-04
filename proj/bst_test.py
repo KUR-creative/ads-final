@@ -1,5 +1,5 @@
 from ctypes import CDLL, Structure
-from ctypes import c_int, c_char, byref
+from ctypes import c_int, c_char
 from collections import namedtuple
 import random
 
@@ -66,7 +66,7 @@ def tup_tree(tree): return F.lmap(cobj2tuple, tree)
 def is_tup_leaf(node):
     v,p,l,r = node
     return l <= 0 and r <= 0
-def all_ixy_idxes(tup_tree):
+def all_ixy_idxes(tup_tree, beg_idx=1):
     ''' Gey ixy indexes in (tuple mapped) tree '''
     def tup_or_empty(i):
         return (i,) if i else ()
@@ -79,15 +79,15 @@ def all_ixy_idxes(tup_tree):
         v,p,l,r = node
         return(leaf(l, r) if is_tup_leaf(node)
           else node_or_leaf(l) + node_or_leaf(r))
-    return ixy_idxes(tup_tree[1])
+    return ixy_idxes(tup_tree[beg_idx])
 
-def all_inodes(tup_tree):
+def all_inodes(tup_tree, beg_idx=1):
     def inodes(node):
         v,p,l,r = node
         left  = inodes(tup_tree[l]) if l > 0 else []
         right = inodes(tup_tree[r]) if r > 0 else []
         return [*left, node, *right]
-    return inodes(tup_tree[1])
+    return inodes(tup_tree[beg_idx])
 
 '''
 xs = (Ixy(), 
@@ -110,7 +110,7 @@ tt = [(0, 0, 0, 0),
       (25473, 3, 7, -66049), (588888909, 4, -385079, -871170), 
       (18858, 5, 8, -408489), (18182, 7, -708360, -54656), 
       (1115410972, 1, -558753, -32704), (0, 0, 0, 0)]
-tt1= [(0, 0, 0, 0), 
+tt = [(0, 0, 0, 0), 
       (1, 0, 2, 9), (2, 1, -919041, 3), 
       (3, 2, 5, 4), (4, 3, 6, -266226), 
       (5, 3, 7, -66049), (6, 4, -385079, -871170), 
@@ -119,6 +119,9 @@ tt1= [(0, 0, 0, 0),
       (0, 0, 0, 0), (0, 0, 0, 0)]
 from pprint import pprint
 pprint(all_inodes(tt))
+
+pprint(all_inodes(tt, 4))
+pprint(all_ixy_idxes(tt, 4))
 '''
 #--------------------------------------------------------
 def test_leaf_ixy_idxes():
@@ -236,6 +239,10 @@ def test_prop__bst_insert(gen):
     #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
 
 def bst_tree(ixys, xORy):
+    '''
+    n_node: num of node in tree
+    n_inserted: num of inserted ixy
+    '''
     n_node = 0 # empty
     tree = (NODE * MAX_LEN)()
     ixy_arr = sparse_array(ixys)
@@ -287,6 +294,42 @@ def test_prop__subtree_ixys(gen):
     assert n_ixys == len(ixy_idxes)
     #assert False
 '''
+@st.composite
+def gen_ixy_indexes_data(draw):
+    ixys = draw(st.lists(
+        st.tuples(
+            st.integers(min_value=1, max_value=MAX_LEN),
+            st.integers(min_value=1, max_value=2147483647),#2**31
+            st.integers(min_value=1, max_value=2147483647),#2**31
+        ),
+        min_size=2, max_size=MAX_LEN,
+        unique_by=lambda ixy:ixy[0]
+    ))
+    mode = random.choice('xy'); xORy = c_char(mode.encode())
+
+    n_node, ixy_arr, c_bst, n_inserted = bst_tree(ixys, xORy)
+    beg_idx = random.choice(range(1, n_node+1))
+
+    return dict(ixys=ixys, mode=mode, xORy=xORy,
+                c_bst=c_bst, n_inserted=n_inserted,
+                beg_idx=beg_idx)
+
+@given(gen_ixy_indexes_data())
+def test_prop__ixy_indexes(gen):
+    ixys = gen['ixys']; mode = gen['mode']; xORy=gen['xORy']
+    c_bst = gen['c_bst']; n_inserted = gen['n_inserted']
+    beg_idx = gen['beg_idx']
+
+    ixy_idx_arr = (c_int * n_inserted)()
+    n_ixys = bst.ixy_indexes(c_bst, beg_idx, ixy_idx_arr)
+
+    tup_bst = tup_tree(c_bst[:n_inserted+4])
+    expect_idxes = [-i for i in all_ixy_idxes(tup_bst, beg_idx)]
+    actual_idxes = [int(i) for i in ixy_idx_arr]
+
+    #assert n_ixys == len(expect_idxes), tup_bst
+    assert actual_idxes == expect_idxes
+
 
 @st.composite
 def gen_range_search_data(draw):
@@ -337,7 +380,7 @@ def gen_range_search_data(draw):
         includeds=includeds, excludeds=excludeds
     )
 
-#@pytest.mark.skip(reason='not now')
+@pytest.mark.skip(reason='not now')
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
     ixys = gen['ixys']
@@ -356,5 +399,5 @@ def test_prop__range_search(gen):
     expect_idxes = F.lmap(F.first, includeds)
     #actual_ixys = F.lmap(cobj2tuple, ixy_idxes)
 
-    #assert n_included == len(includeds)
+    assert n_included == len(includeds)
     assert actual_idxes == expect_idxes

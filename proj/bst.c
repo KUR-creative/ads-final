@@ -179,7 +179,8 @@ int insert(int n_node, Node tree[], char xORy,
 // return: number of ixys in subtree.
 //  `idxes` is returned indexes(+) of ixy in ixys.
 //  So idxes are positive!
-int ixy_indexes(const Node* node, int idxes[]){
+int ixy_indexes(const Node tree[], int beg_idx, int idxes[]){
+    //Node root = tree[beg_idx];
     return 0;
 }
 // return: number of included in range [min, max]
