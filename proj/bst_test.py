@@ -271,27 +271,38 @@ def gen_range_search_data(draw):
         return min_key <= key(ixy) <= max_key
     def excluded(ixy):
         return key(ixy) < min_key or max_key < key(ixy)
-    includeds = [tuple(ixy) for ixy in filter(included,nt_ixys)]
+    includeds = [tuple(ixy) for ixy in 
+        sorted(filter(included,nt_ixys), key=key)]
     excludeds = [tuple(ixy) for ixy in filter(excluded,nt_ixys)]
     
     ixy_map = F.zipdict(
         map(F.first, ixys), map(tup(Ixy), ixys))
     return dict(
         ixys=ixys, mode=mode, ixy_map=ixy_map,
-        min_key=min_key, max_key=max_key, includeds=includeds
+        min_key=min_key, max_key=max_key,
+        includeds=includeds, excludeds=excludeds
     )
 
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
     ixys = gen['ixys']
-    mode = gen['mode']
-    xORy = c_char(mode.encode())
+    mode = gen['mode']; xORy = c_char(mode.encode())
+    min_key = gen['min_key']
+    max_key = gen['max_key']
+
     
-    '''
     n_node = 0 # empty
     tree = (NODE * MAX_LEN)()
+    ixy_arr = sparse_array(ixys)
     for n_inserted, (i,x,y) in enumerate(ixys, start=1):
         n_node = bst.insert(
             n_node, tree, xORy, i, ixy_arr)
-    '''
-    assert False
+    
+    actual_arr = (IXY * n_node)()
+    n_included = bst.includeds1d(
+        n_node, tree, min_key, max_key, actual_arr)
+    actual_ixys = F.lmap(cobj2tuple, actual_arr[:n_included])
+
+    includeds = gen['includeds']
+    assert n_included == len(includeds)
+    assert actual_ixys == includeds

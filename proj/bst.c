@@ -175,3 +175,11 @@ int insert(int n_node, Node tree[], char xORy,
 
     return n_node;
 }
+
+// return: number of included in range [min, max]
+//         included coordinates are saved in `ixys`
+int includeds1d(int n_node, const Node tree[],
+                int min, int max, IXY ixys[])
+{
+    return 0;
+}
