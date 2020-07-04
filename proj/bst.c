@@ -176,10 +176,29 @@ int insert(int n_node, Node tree[], char xORy,
     return n_node;
 }
 
+// return: number of ixys in subtree.
+//  `idxes` is returned indexes(+) of ixy in ixys.
+//  So idxes are positive!
+int ixy_indexes(const Node* node, int idxes[]){
+    return 0;
+}
 // return: number of included in range [min, max]
-//         included coordinates are saved in `ixys`
+//         included idxes of coordinates are saved in `ixys`
+//  TODO: add xORy as arg
 int includeds1d(int n_node, const Node tree[],
-                int min, int max, IXY ixys[])
+                int min, int max, int ixy_idxes[])
 {
+    // find split node idx
+    int split = 1;
+    while(split > 0 && // split is not a leaf
+         (tree[split].key < min || // key < min <= max
+          max <= tree[split].key)){// or    min <= max <= key
+        if(max <= tree[split].key){
+            split = tree[split].left; 
+        }else{
+            split = tree[split].right; 
+        }
+    }
+    // Now, split is index of split node or leaf.
     return 0;
 }

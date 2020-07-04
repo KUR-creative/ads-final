@@ -1,5 +1,5 @@
 from ctypes import CDLL, Structure
-from ctypes import c_int, c_char
+from ctypes import c_int, c_char, byref
 from collections import namedtuple
 import random
 
@@ -66,7 +66,7 @@ def tup_tree(tree): return F.lmap(cobj2tuple, tree)
 def is_tup_leaf(node):
     v,p,l,r = node
     return l <= 0 and r <= 0
-def leaf_ixy_idxes(tup_tree):
+def all_ixy_idxes(tup_tree):
     ''' Gey ixy indexes in (tuple mapped) tree '''
     def tup_or_empty(i):
         return (i,) if i else ()
@@ -126,19 +126,19 @@ def test_leaf_ixy_idxes():
           Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
           Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
     tt = (Node(), Node())
-    assert leaf_ixy_idxes(tt) == ()
+    assert all_ixy_idxes(tt) == ()
     tt = (Node(), 
           Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
           Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
-    assert leaf_ixy_idxes(tt) == (-5, -4, -8, -7)
+    assert all_ixy_idxes(tt) == (-5, -4, -8, -7)
     tt = (Node(), (1, 0, -1, 0), Node())
-    assert leaf_ixy_idxes(tt) == (-1,)
+    assert all_ixy_idxes(tt) == (-1,)
     tt = (Node(), (1, 0, -1, -4), Node())
-    assert leaf_ixy_idxes(tt) == (-1, -4)
+    assert all_ixy_idxes(tt) == (-1, -4)
     tt = [(0, 0, 0, 0), (1, 0, 2, -2), (1, 1, -1, -3), 
           (0, 0, 0, 0), (0, 0, 0, 0)]
-    assert leaf_ixy_idxes(tt) == (-1, -3, -2)
-    #print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
+    assert all_ixy_idxes(tt) == (-1, -3, -2)
+    #print(F.lmap(lambda i: xs[abs(i)], all_ixy_idxes(tt)))
 
 @st.composite
 def gen_ixys_mode_map(draw):
@@ -181,7 +181,7 @@ def test_prop__bst_insert(gen):
             assert node.parent >= 0, (n_inserted, i, pyobj(node))
                                    
     #   2. Get ixy idxes from tree structure
-        ixy_idxes = leaf_ixy_idxes(
+        ixy_idxes = all_ixy_idxes(
             tup_tree(tree[:n_inserted+4]))
         # Inserted number of ixys preserved?
         no0idxes = F.compact([abs(i) for i in ixy_idxes])
@@ -235,6 +235,59 @@ def test_prop__bst_insert(gen):
     #print(ixys)
     #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
 
+def bst_tree(ixys, xORy):
+    n_node = 0 # empty
+    tree = (NODE * MAX_LEN)()
+    ixy_arr = sparse_array(ixys)
+    for n_inserted, (i,x,y) in enumerate(ixys, start=1):
+        n_node = bst.insert(
+            n_node, tree, xORy, i, ixy_arr)
+    return n_node, ixy_arr, tree, n_inserted
+
+'''
+@st.composite
+def gen_subtree_ixys_data(draw):
+    ixys = draw(st.lists(
+        st.tuples(
+            st.integers(min_value=1, max_value=MAX_LEN),
+            st.integers(min_value=1, max_value=2147483647),#2**31
+            st.integers(min_value=1, max_value=2147483647),#2**31
+        ),
+        min_size=2, max_size=MAX_LEN,
+        unique_by=lambda ixy:ixy[0]
+    ))
+    mode = random.choice('xy')
+    ixy_map = F.zipdict(
+        map(F.first, ixys), map(tup(Ixy), ixys))
+
+    #idxes = F.lmap(F.first, ixys)
+    xORy = c_char(mode.encode())
+    n_node, ixy_arr, c_bst, n_inserted = bst_tree(ixys, xORy)
+
+    tup_bst = tup_tree(c_bst[:n_node+4])
+    beg_idx = draw(st.sampled_from(range(1, n_node+1)))
+    ixy_idxes = [-i for i in all_ixy_idxes(tup_bst[beg_idx:])]
+
+    return dict(ixys=ixys, mode=mode, ixy_map=ixy_map, 
+                c_bst=c_bst, n_inserted=n_inserted,
+                beg_idx=beg_idx, ixy_idxes=ixy_idxes)
+
+@given(gen_subtree_ixys_data())
+def test_prop__subtree_ixys(gen):
+    ixys = gen['ixys']; mode = gen['mode']
+    c_bst = gen['c_bst']; n_inserted = gen['n_inserted']
+    beg_idx = gen['beg_idx']; ixy_idxes = gen['ixy_idxes']
+
+    ret_idx_arr = (c_int * n_inserted)()
+    n_ixys = bst.ixy_idxes(byref(c_bst[beg_idx]), ret_idx_arr)
+    actual = [int(i) for i in ret_idx_arr[:n_ixys]]
+    print('=--=')
+    print(ret_idx_arr)
+    print(actual)
+    assert n_ixys == len(ixy_idxes)
+    #assert False
+'''
+
 @st.composite
 def gen_range_search_data(draw):
     global MAX_LEN
@@ -273,6 +326,7 @@ def gen_range_search_data(draw):
         return key(ixy) < min_key or max_key < key(ixy)
     includeds = [tuple(ixy) for ixy in 
         sorted(filter(included,nt_ixys), key=key)]
+               #key=lambda ixy:(key(ixy), ixy[0]))]
     excludeds = [tuple(ixy) for ixy in filter(excluded,nt_ixys)]
     
     ixy_map = F.zipdict(
@@ -283,26 +337,24 @@ def gen_range_search_data(draw):
         includeds=includeds, excludeds=excludeds
     )
 
+#@pytest.mark.skip(reason='not now')
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
     ixys = gen['ixys']
     mode = gen['mode']; xORy = c_char(mode.encode())
     min_key = gen['min_key']
     max_key = gen['max_key']
-
-    
-    n_node = 0 # empty
-    tree = (NODE * MAX_LEN)()
-    ixy_arr = sparse_array(ixys)
-    for n_inserted, (i,x,y) in enumerate(ixys, start=1):
-        n_node = bst.insert(
-            n_node, tree, xORy, i, ixy_arr)
-    
-    actual_arr = (IXY * n_node)()
-    n_included = bst.includeds1d(
-        n_node, tree, min_key, max_key, actual_arr)
-    actual_ixys = F.lmap(cobj2tuple, actual_arr[:n_included])
-
     includeds = gen['includeds']
-    assert n_included == len(includeds)
-    assert actual_ixys == includeds
+
+    n_node, ixy_arr, tree, n_inserted = bst_tree(ixys, xORy)
+    
+    ixy_idxes = (c_int * n_inserted)()
+    n_included = bst.includeds1d(
+        n_node, tree, min_key, max_key, ixy_idxes)
+
+    actual_idxes = [int(i) for i in ixy_idxes]
+    expect_idxes = F.lmap(F.first, includeds)
+    #actual_ixys = F.lmap(cobj2tuple, ixy_idxes)
+
+    #assert n_included == len(includeds)
+    assert actual_idxes == expect_idxes
