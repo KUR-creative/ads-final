@@ -154,11 +154,11 @@ def gen_ixys_mode_map(draw):
     mode = random.choice('xy')
     ixy_map = F.zipdict(
         map(F.first, ixys), map(tup(Ixy), ixys))
-    return ixys, mode, ixy_map
+    return dict(ixys=ixys, mode=mode, ixy_map=ixy_map)
 
 @given(gen_ixys_mode_map())
-def test_prop__bst_insert(ixys_mode_map):
-    ixys, mode, ixy_map = ixys_mode_map
+def test_prop__bst_insert(gen):
+    ixys, mode, ixy_map = gen['ixys'], gen['mode'], gen['ixy_map']
     xORy = c_char(mode.encode())
     ixy_arr = sparse_array(ixys)
 
@@ -235,6 +235,63 @@ def test_prop__bst_insert(ixys_mode_map):
     #print(ixys)
     #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
 
-@given(gen_ixys_mode_map())
-def test_prop__range_search(ixys_mode_map):
-    pass
+@st.composite
+def gen_range_search_data(draw):
+    global MAX_LEN
+    max_key = 2147483647 #2**31
+    
+    mode = random.choice('xy')
+    key = prop(mode)
+    
+    ixys = draw(st.lists(
+        st.tuples(
+            st.integers(min_value=1, max_value=MAX_LEN),
+            st.integers(min_value=1, max_value=max_key),
+            st.integers(min_value=1, max_value=max_key),
+        ),
+        min_size=2, max_size=MAX_LEN,
+        unique_by=lambda ixy:ixy[0]
+    ))
+    
+    nt_ixys = F.lmap(tup(Ixy), ixys)
+    
+    max_val_ = key(max(nt_ixys, key=key))
+    max_val = min(max_val_ + max_val_ // 2, max_key)
+    min_val_ = key(min(nt_ixys, key=key))
+    min_val = max(min_val_ - min_val_ // 2, 1)
+    
+    min_key, max_key = sorted([
+        draw(st.integers(
+            min_value=min_val, max_value=max_val)),
+        draw(st.integers(
+            min_value=min_val, max_value=max_val))
+    ])
+
+    def included(ixy):
+        return min_key <= key(ixy) <= max_key
+    def excluded(ixy):
+        return key(ixy) < min_key or max_key < key(ixy)
+    includeds = [tuple(ixy) for ixy in filter(included,nt_ixys)]
+    excludeds = [tuple(ixy) for ixy in filter(excluded,nt_ixys)]
+    
+    ixy_map = F.zipdict(
+        map(F.first, ixys), map(tup(Ixy), ixys))
+    return dict(
+        ixys=ixys, mode=mode, ixy_map=ixy_map,
+        min_key=min_key, max_key=max_key, includeds=includeds
+    )
+
+@given(gen_range_search_data())
+def test_prop__range_search(gen):
+    ixys = gen['ixys']
+    mode = gen['mode']
+    xORy = c_char(mode.encode())
+    
+    '''
+    n_node = 0 # empty
+    tree = (NODE * MAX_LEN)()
+    for n_inserted, (i,x,y) in enumerate(ixys, start=1):
+        n_node = bst.insert(
+            n_node, tree, xORy, i, ixy_arr)
+    '''
+    assert False
