@@ -40,13 +40,19 @@ Ixy = namedtuple('Ixy', IXY_props, defaults=[0,0,0])
 PROPS = {NODE: NODE_props, IXY: IXY_props}
 PYTYPE = {NODE: Node, IXY: Ixy}
 
+MAX_LEN = 1000000
+
 def pyobj(cobj): 
     global PROPS, PYTYPE
     ctype = type(cobj); pytype = PYTYPE[ctype]
     props = F.lmap(prop, PROPS[ctype])
     return pytype(*map(lambda p: p(cobj), props))
 
-MAX_LEN = 1000000
+def sparse_array(ixys):
+    dense_arr = (IXY * len(ixys))(*ixys)
+    sparse_arr = (IXY * MAX_LEN)()
+    bst.make_sparse(len(ixys), dense_arr, sparse_arr)
+    return sparse_arr
 
 #--------------------------------------------------------
 def num_leaf(NODE):
@@ -115,7 +121,6 @@ from pprint import pprint
 pprint(all_inodes(tt))
 '''
 #--------------------------------------------------------
-
 def test_leaf_ixy_idxes():
     xs = (Ixy(), 
           Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
@@ -135,7 +140,6 @@ def test_leaf_ixy_idxes():
     assert leaf_ixy_idxes(tt) == (-1, -3, -2)
     #print(F.lmap(lambda i: xs[abs(i)], leaf_ixy_idxes(tt)))
 
-
 @st.composite
 def gen_ixys_mode_map(draw):
     ixys = draw(st.lists(
@@ -151,12 +155,6 @@ def gen_ixys_mode_map(draw):
     ixy_map = F.zipdict(
         map(F.first, ixys), map(tup(Ixy), ixys))
     return ixys, mode, ixy_map
-
-def sparse_array(ixys):
-    dense_arr = (IXY * len(ixys))(*ixys)
-    sparse_arr = (IXY * MAX_LEN)()
-    bst.make_sparse(len(ixys), dense_arr, sparse_arr)
-    return sparse_arr
 
 @given(gen_ixys_mode_map())
 def test_prop__bst_insert(ixys_mode_map):
@@ -236,3 +234,7 @@ def test_prop__bst_insert(ixys_mode_map):
     #print('-------------------')
     #print(ixys)
     #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
+
+@given(gen_ixys_mode_map())
+def test_prop__range_search(ixys_mode_map):
+    pass
