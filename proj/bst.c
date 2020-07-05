@@ -251,6 +251,138 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
                 int min, int max, int ixy_idxes[],
                 int stack[])
 {
+    int top = -1; // stack top.
+    int n_ixy = 0;
+    int split = 1;
+
+    // Find split node idx.
+    while(split > 0 && // split is not a leaf
+         (tree[split].key < min || // KEY < min <= max
+          max < tree[split].key)){ // or    min <= max < KEY
+        int k = tree[split].key;
+        int l = tree[split].left; 
+        int r = tree[split].right;
+        // Special case: l r keys are same
+        if(node_key(l, tree, ixys, xORy) ==
+           node_key(r, tree, ixys, xORy)){
+            break;
+        }
+        split = (max <= k ? l : r);
+    }
+    // Now, split is idx of tree(+) or idx of ixys(-) or 0.
+    
+        puts("====");
+        PRNd(split); puts("");
+    if(split < 0){
+        int k = KEY(ixys[-split], xORy);
+        if(min <= k && k <= max){
+            ixy_idxes[n_ixy++] = -split;
+        }
+        return n_ixy;
+    } else if(split == 0){
+        return n_ixy; // Do nothing.
+    }
+
+    // left path
+    int v = tree[split].left; 
+    while(v > 0){
+        int vr = tree[v].right;
+        if(min <= tree[v].key){
+            stack[++top] = vr;
+            v = tree[v].left;
+        }else{
+            v = vr;
+        }
+    }
+    // Now, v <= 0, check v is included in [min,max]
+    if(v < 0 && min <= KEY(ixys[-v], xORy)){
+        stack[++top] = v;
+    }
+    // Save number of left vertices.
+    int beg_left_vs = top; 
+
+    // right path
+    v = tree[split].right;
+    while(v > 0){ 
+        int vl = tree[v].left;
+        if(tree[v].key < max){
+            stack[++top] = vl;
+            v = tree[v].right;
+        }else{
+            v = vl;
+        }
+    }
+    // Now, v <= 0, check v is included in [min,max]
+    if(v < 0 && KEY(ixys[-v], xORy) <= max){
+        stack[++top] = v;
+    }
+
+    // Copy left_vs from stack to vla array in reverse.
+    int n_vs = top + 1;
+    int vs[n_vs]; int i_vs = 0;
+    for(int i = beg_left_vs; i >= 0; i--){
+        vs[i_vs++] = stack[i];
+    }
+    // Copy right_vs from stack to vla array.
+    for(int i = beg_left_vs + 1; i < n_vs; i++){
+        vs[i_vs++] = stack[i];
+    }
+    
+                        puts("wtf 1");
+                        printf("|%d %d %d %d|", 
+                            tree[0].key, tree[0].parent,
+                            tree[0].left, tree[0].right);
+                        printf("%d %d %d %d|", 
+                            tree[1].key, tree[1].parent,
+                            tree[1].left, tree[1].right);
+                        int t = 2;
+                        while(tree[t].parent != 0){
+                            printf("%d %d %d %d|", 
+                                tree[t].key, tree[t].parent,
+                                tree[t].left, tree[t].right);
+                            t++;
+                        }
+                        puts("");
+                        PRNd(n_vs); PRNLd(i_vs);
+                        puts("stack:");
+                        print_arr(top, stack);
+                        puts("vs:");
+                        print_arr(n_vs, vs);
+                        puts("wtf 2");
+    // Write ixy_idxes.
+    for(int i = 0; i < n_vs; i++){
+        v = vs[i];
+        if(v > 0){
+            n_ixy += ixy_indexes(
+                tree, v, ixy_idxes + n_ixy, stack);
+        }else if(v < 0){
+            ixy_idxes[n_ixy++] = -v;
+        }
+    }
+                        puts("wtf 3");
+
+    // Copy vs to vla array in reverse order.
+    /*
+    // Set stack empty
+    top = -1;
+    */
+    return n_ixy;
+}
+                /*
+                // Push vr to stack. copy vrs to vla array,
+                // Calc ixy_idxes in reverse order.
+                if(vr > 0){
+                    n_ixy += ixy_indexes(
+                        tree, vr, ixy_idxes, stack);
+                }else if(vr < 0){
+                    ixy_idxes[n_ixy++] = -vr;
+                }
+        // Now, v <= 0
+        if(v < 0 && min <= KEY(ixys[-v], xORy)){
+            //ixy_idxes[n_ixy++] = -v;
+        }
+                */
+    /*
     int n_ixy = 0;
     // Find split node idx.
     int split = 1;
@@ -327,4 +459,4 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
     }
 
     return n_ixy;
-}
+    */

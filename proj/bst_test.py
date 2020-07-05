@@ -408,6 +408,9 @@ def gen_range_search_data(draw):
 #@pytest.mark.skip(reason='not now')
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
+    from pprint import pprint
+    print('---------------')
+    pprint(gen);
     ixys = gen['ixys']
     mode = gen['mode']; xORy = c_char(mode.encode())
     min_key = gen['min_key']
@@ -415,6 +418,8 @@ def test_prop__range_search(gen):
     includeds = gen['includeds']
 
     n_node, ixy_arr, c_bst, n_inserted = bst_tree(ixys, xORy)
+    tup_bst = tup_tree(c_bst[:n_inserted+4])
+    pprint(tup_bst)
     
     ixy_idxes = (c_int * n_inserted)()
     stack = (c_int * MAX_LEN)()
@@ -425,8 +430,48 @@ def test_prop__range_search(gen):
     expect_idxes = F.lmap(F.first, includeds)
     #actual_ixys = F.lmap(cobj2tuple, ixy_idxes)
 
-    tup_bst = tup_tree(c_bst[:n_inserted+4])
     assert actual_idxes == expect_idxes, \
         f'{actual_idxes} != {expect_idxes}, {tup_bst}'
     assert n_included == len(includeds), \
         f'{n_included} != {len(includeds)}, {tup_bst}'
+
+'''
+gen = {'excludeds': [(734066, 113, 122),
+               (604135, 31074, 65),
+               (539554, 13632, 1877174209),
+               (585501, 239, 569),
+               (458877, 3, 108),
+               (102289, 171, 33668)],
+ 'includeds': [(5515, 162, 42278),
+               (312766, 6878, 45348),
+               (344951, 960568721, 49395),
+               (341945, 181, 63985),
+               (156775, 1219835225, 203617851)],
+ 'ixy_map': {5515: Ixy(i=5515, x=162, y=42278),
+             102289: Ixy(i=102289, x=171, y=33668),
+             156775: Ixy(i=156775, x=1219835225, y=203617851),
+             312766: Ixy(i=312766, x=6878, y=45348),
+             341945: Ixy(i=341945, x=181, y=63985),
+             344951: Ixy(i=344951, x=960568721, y=49395),
+             458877: Ixy(i=458877, x=3, y=108),
+             539554: Ixy(i=539554, x=13632, y=1877174209),
+             585501: Ixy(i=585501, x=239, y=569),
+             604135: Ixy(i=604135, x=31074, y=65),
+             734066: Ixy(i=734066, x=113, y=122)},
+ 'ixys': [(341945, 181, 63985),
+          (734066, 113, 122),
+          (344951, 960568721, 49395),
+          (604135, 31074, 65),
+          (539554, 13632, 1877174209),
+          (585501, 239, 569),
+          (312766, 6878, 45348),
+          (156775, 1219835225, 203617851),
+          (458877, 3, 108),
+          (102289, 171, 33668),
+          (5515, 162, 42278)],
+ 'max_key': 1738622769,
+ 'min_key': 40826,
+ 'mode': 'y'}
+
+test_prop__range_search(gen)
+'''
