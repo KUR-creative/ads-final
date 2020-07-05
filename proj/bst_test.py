@@ -251,49 +251,6 @@ def bst_tree(ixys, xORy):
             n_node, tree, xORy, i, ixy_arr)
     return n_node, ixy_arr, tree, n_inserted
 
-'''
-@st.composite
-def gen_subtree_ixys_data(draw):
-    ixys = draw(st.lists(
-        st.tuples(
-            st.integers(min_value=1, max_value=MAX_LEN),
-            st.integers(min_value=1, max_value=2147483647),#2**31
-            st.integers(min_value=1, max_value=2147483647),#2**31
-        ),
-        min_size=2, max_size=MAX_LEN,
-        unique_by=lambda ixy:ixy[0]
-    ))
-    mode = random.choice('xy')
-    ixy_map = F.zipdict(
-        map(F.first, ixys), map(tup(Ixy), ixys))
-
-    #idxes = F.lmap(F.first, ixys)
-    xORy = c_char(mode.encode())
-    n_node, ixy_arr, c_bst, n_inserted = bst_tree(ixys, xORy)
-
-    tup_bst = tup_tree(c_bst[:n_node+4])
-    beg_idx = draw(st.sampled_from(range(1, n_node+1)))
-    ixy_idxes = [-i for i in all_ixy_idxes(tup_bst[beg_idx:])]
-
-    return dict(ixys=ixys, mode=mode, ixy_map=ixy_map, 
-                c_bst=c_bst, n_inserted=n_inserted,
-                beg_idx=beg_idx, ixy_idxes=ixy_idxes)
-
-@given(gen_subtree_ixys_data())
-def test_prop__subtree_ixys(gen):
-    ixys = gen['ixys']; mode = gen['mode']
-    c_bst = gen['c_bst']; n_inserted = gen['n_inserted']
-    beg_idx = gen['beg_idx']; ixy_idxes = gen['ixy_idxes']
-
-    ret_idx_arr = (c_int * n_inserted)()
-    n_ixys = bst.ixy_idxes(byref(c_bst[beg_idx]), ret_idx_arr)
-    actual = [int(i) for i in ret_idx_arr[:n_ixys]]
-    print('=--=')
-    print(ret_idx_arr)
-    print(actual)
-    assert n_ixys == len(ixy_idxes)
-    #assert False
-'''
 @st.composite
 def gen_ixy_indexes_data(draw):
     ixys = draw(st.lists(
@@ -354,7 +311,6 @@ n_node, ixy_arr, c_bst, n_inserted = bst_tree(
 gen['c_bst'] = c_bst
 test_prop__ixy_indexes(gen)
 '''
-
 
 @st.composite
 def gen_range_search_data(draw):
@@ -472,6 +428,14 @@ gen = {'excludeds': [(734066, 113, 122),
  'max_key': 1738622769,
  'min_key': 40826,
  'mode': 'y'}
-
+gen={'excludeds': [],
+     'includeds': [(1, 1, 1), (2, 1, 1), (3, 1, 1)],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1),
+      2: Ixy(i=2, x=1, y=1),
+      3: Ixy(i=3, x=1, y=1)},
+     'ixys': [(1, 1, 1), (2, 1, 1), (3, 1, 1)],
+     'max_key': 1,
+     'min_key': 1,
+     'mode': 'y'}
 test_prop__range_search(gen)
 '''

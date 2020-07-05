@@ -87,15 +87,6 @@ void leaf_key(const Node* leaf, const IXY ixys[],
     *r_val = KEY(ixys[r], xORy);
 }
 
-// next node in bst searching for new_key
-// ret: left or right
-// ret: (-)leaf, (0)empty leaf, (+)inode - go deeper
-// TODO: remove it..
-static inline
-int next_idx(const Node* n, int new_key){
-    return (n->key < new_key ? n->right : n->left);
-}
-
 //--------------------------------------------------------
 // args:
 //  n_node: number of inner nodes in tree.
@@ -201,14 +192,13 @@ int insert(int n_node, Node tree[], char xORy,
     return n_node;
 }
 
-        //TODO:remove
-        //printf("\nwtf -B- %d \n", curr);
-        //printf("wtf -A- %d \n", curr);
-
+// Inorder traversal from Node: tree[beg_idx].
+// Report all ixys in the tree[beg_idx].
+// `stack` is just int array, Managed in this function.
+// 
 // return: number of ixys in subtree.
 //  `idxes` is returned indexes(+) of ixy in ixys.
 //  So idxes are positive!
-//  `stack` is just int array, Managed in this function.
 int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
                 int stack[]){
     int top = -1; // stack top
@@ -219,9 +209,6 @@ int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
             stack[++top] = curr;
             curr = tree[curr].left;
         }
-                //print_stack(top, stack); puts("");
-                //printf("before ret idxes(n_ixy = %d): ", n_ixy);
-                //print_arr(n_ixy, idxes); puts("");
         if(top > -1){
             int popped = stack[top--]; // popped: inode index
             // log ixy indexes
@@ -236,8 +223,6 @@ int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
                 curr = right;
             }
         }
-                //printf("\n after ret idxes(n_ixy = %d): ", n_ixy);
-                //print_arr(n_ixy, idxes); puts(""); //PRNd(top); PRNLd(curr);
     } while(top > -1 || curr > 0);
     // End if stack is empty && can't go deep
     return n_ixy;
@@ -246,7 +231,6 @@ int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
 // return: number of included in range [min, max]
 //         included idxes of coordinates are saved in `ixys`
 //         `stack` is just int array, Managed in this function.
-//  TODO: add xORy as arg
 int includeds1d(const Node tree[], const IXY ixys[], char xORy,
                 int min, int max, int ixy_idxes[],
                 int stack[])
@@ -271,19 +255,17 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
     
-        puts("====");
-        PRNd(split); puts("");
     if(split < 0){
         int k = KEY(ixys[-split], xORy);
         if(min <= k && k <= max){
             ixy_idxes[n_ixy++] = -split;
         }
         return n_ixy;
-    } else if(split == 0){
+    }else if(split == 0){
         return n_ixy; // Do nothing.
     }
 
-    // left path
+    // Left path
     int v = tree[split].left; 
     while(v > 0){
         int vr = tree[v].right;
@@ -301,7 +283,7 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
     // Save number of left vertices.
     int beg_left_vs = top; 
 
-    // right path
+    // Right path
     v = tree[split].right;
     while(v > 0){ 
         int vl = tree[v].left;
@@ -327,28 +309,7 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
     for(int i = beg_left_vs + 1; i < n_vs; i++){
         vs[i_vs++] = stack[i];
     }
-    
-                        puts("wtf 1");
-                        printf("|%d %d %d %d|", 
-                            tree[0].key, tree[0].parent,
-                            tree[0].left, tree[0].right);
-                        printf("%d %d %d %d|", 
-                            tree[1].key, tree[1].parent,
-                            tree[1].left, tree[1].right);
-                        int t = 2;
-                        while(tree[t].parent != 0){
-                            printf("%d %d %d %d|", 
-                                tree[t].key, tree[t].parent,
-                                tree[t].left, tree[t].right);
-                            t++;
-                        }
-                        puts("");
-                        PRNd(n_vs); PRNLd(i_vs);
-                        puts("stack:");
-                        print_arr(top, stack);
-                        puts("vs:");
-                        print_arr(n_vs, vs);
-                        puts("wtf 2");
+
     // Write ixy_idxes.
     for(int i = 0; i < n_vs; i++){
         v = vs[i];
@@ -359,104 +320,5 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
             ixy_idxes[n_ixy++] = -v;
         }
     }
-                        puts("wtf 3");
-
-    // Copy vs to vla array in reverse order.
-    /*
-    // Set stack empty
-    top = -1;
-    */
     return n_ixy;
 }
-                /*
-                // Push vr to stack. copy vrs to vla array,
-                // Calc ixy_idxes in reverse order.
-                if(vr > 0){
-                    n_ixy += ixy_indexes(
-                        tree, vr, ixy_idxes, stack);
-                }else if(vr < 0){
-                    ixy_idxes[n_ixy++] = -vr;
-                }
-        // Now, v <= 0
-        if(v < 0 && min <= KEY(ixys[-v], xORy)){
-            //ixy_idxes[n_ixy++] = -v;
-        }
-                */
-    /*
-    int n_ixy = 0;
-    // Find split node idx.
-    int split = 1;
-    while(split > 0 && // split is not a leaf
-         (tree[split].key < min || // KEY < min <= max
-          max <= tree[split].key)){// or    min <= max <= KEY
-        // Special case: l r keys are same
-        if(node_key(tree[split].left, tree, ixys, xORy) && 
-           node_key(tree[split].right, tree, ixys, xORy)){
-            break;
-        }
-        if(max <= tree[split].key){
-            split = tree[split].left; 
-        }else{
-            split = tree[split].right; 
-        }
-    }
-    // Now, split is index of split node or leaf.
-    //PRNd(split);puts("");
-    
-    puts("====");
-    if(split < 0){
-        ixy_idxes[n_ixy++] = -split;
-    }else if(split == 0){
-    }else{
-                PRNLd(split);
-        // left subtree of split node
-        int v = tree[split].left;
-
-        // v is leaf case(left)
-        int leaf_key = KEY(ixys[-v], xORy);
-        if(v < 0 && min <= leaf_key && leaf_key <= max){
-            ixy_idxes[n_ixy++] = -v; 
-                puts("added? 1");
-        } 
-
-                printf("1 "); print_arr(n_ixy, ixy_idxes); puts("");
-        while(v > 0){
-                PRNd(min); PRNd(v); PRNLd(tree[v].key);
-            if(min <= tree[v].key){
-                n_ixy += ixy_indexes(
-                    tree, v, ixy_idxes + n_ixy, stack);
-                v = tree[v].left;
-                printf("1.5 "); print_arr(n_ixy, ixy_idxes); puts("");
-            }else{
-                v = tree[v].right;
-            }
-        }
-                printf("2 "); print_arr(n_ixy, ixy_idxes); puts("");
-
-        // right subtree of split node
-        v = tree[split].right;
-
-
-        // v is leaf case(right)
-        leaf_key = KEY(ixys[-v], xORy);
-
-        if(v < 0 && min <= leaf_key && leaf_key <= max){
-            ixy_idxes[n_ixy++] = -v; 
-                puts("added? 2");
-        }
-                printf("3 "); print_arr(n_ixy, ixy_idxes); puts("");
-                PRNLd(v);
-        while(v > 0){
-            if(tree[v].key < max){
-                n_ixy += ixy_indexes(
-                    tree, v, ixy_idxes + n_ixy, stack);
-                v = tree[v].right;
-            }else{
-                v = tree[v].left;
-            }
-        }
-                printf("4 "); print_arr(n_ixy, ixy_idxes); puts("");
-    }
-
-    return n_ixy;
-    */
