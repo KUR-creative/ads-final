@@ -386,8 +386,11 @@ def test_prop__range_search(gen):
     expect_idxes = F.lmap(F.first, includeds)
     #actual_ixys = F.lmap(cobj2tuple, ixy_idxes)
 
-    assert actual_idxes == expect_idxes, \
+    assert set(actual_idxes) == set(expect_idxes), \
         f'{actual_idxes} != {expect_idxes}, {tup_bst}'
+    key = prop(mode)
+    for i1, i2 in F.pairwise(actual_idxes):
+        assert key(ixy_arr[i1]) <= key(ixy_arr[i2])
     assert n_included == len(includeds), \
         f'{n_included} != {len(includeds)}, {tup_bst}'
 
