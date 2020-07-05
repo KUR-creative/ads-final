@@ -62,6 +62,20 @@ void make_sparse(int len_dense, IXY dense_arr[],
     }
 }
 
+// if idx > 0, return key of node from tree.
+// if idx < 0, return key of ixy from ixys.
+// if idx = 0, return 0.
+static inline
+int node_key(int idx, const Node tree[], const IXY ixys[], 
+             char xORy){
+    if(idx > 0){ 
+        return tree[idx].key; 
+    }else if(idx < 0){ 
+        return KEY(ixys[-idx], xORy); 
+    }else{ 
+        return 0; 
+    }
+}
 //--------------------------------------------------------
 // if no value, then set to 0 (ixys[0] are {0, 0, 0}).
 // TODO: remove it..
@@ -231,15 +245,23 @@ int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
 
 // return: number of included in range [min, max]
 //         included idxes of coordinates are saved in `ixys`
+//         `stack` is just int array, Managed in this function.
 //  TODO: add xORy as arg
-int includeds1d(int n_node, const Node tree[],
-                int min, int max, int ixy_idxes[])
+int includeds1d(const Node tree[], const IXY ixys[], char xORy,
+                int min, int max, int ixy_idxes[],
+                int stack[])
 {
-    // find split node idx
+    int n_ixy = 0;
+    // Find split node idx.
     int split = 1;
     while(split > 0 && // split is not a leaf
-         (tree[split].key < min || // key < min <= max
-          max <= tree[split].key)){// or    min <= max <= key
+         (tree[split].key < min || // KEY < min <= max
+          max <= tree[split].key)){// or    min <= max <= KEY
+        // Special case: l r keys are same
+        if(node_key(tree[split].left, tree, ixys, xORy) && 
+           node_key(tree[split].right, tree, ixys, xORy)){
+            break;
+        }
         if(max <= tree[split].key){
             split = tree[split].left; 
         }else{
@@ -247,5 +269,62 @@ int includeds1d(int n_node, const Node tree[],
         }
     }
     // Now, split is index of split node or leaf.
-    return 0;
+    //PRNd(split);puts("");
+    
+    puts("====");
+    if(split < 0){
+        ixy_idxes[n_ixy++] = -split;
+    }else if(split == 0){
+    }else{
+                PRNLd(split);
+        // left subtree of split node
+        int v = tree[split].left;
+
+        // v is leaf case(left)
+        int leaf_key = KEY(ixys[-v], xORy);
+        if(v < 0 && min <= leaf_key && leaf_key <= max){
+            ixy_idxes[n_ixy++] = -v; 
+                puts("added? 1");
+        } 
+
+                printf("1 "); print_arr(n_ixy, ixy_idxes); puts("");
+        while(v > 0){
+                PRNd(min); PRNd(v); PRNLd(tree[v].key);
+            if(min <= tree[v].key){
+                n_ixy += ixy_indexes(
+                    tree, v, ixy_idxes + n_ixy, stack);
+                v = tree[v].left;
+                printf("1.5 "); print_arr(n_ixy, ixy_idxes); puts("");
+            }else{
+                v = tree[v].right;
+            }
+        }
+                printf("2 "); print_arr(n_ixy, ixy_idxes); puts("");
+
+        // right subtree of split node
+        v = tree[split].right;
+
+
+        // v is leaf case(right)
+        leaf_key = KEY(ixys[-v], xORy);
+
+        if(v < 0 && min <= leaf_key && leaf_key <= max){
+            ixy_idxes[n_ixy++] = -v; 
+                puts("added? 2");
+        }
+                printf("3 "); print_arr(n_ixy, ixy_idxes); puts("");
+                PRNLd(v);
+        while(v > 0){
+            if(tree[v].key < max){
+                n_ixy += ixy_indexes(
+                    tree, v, ixy_idxes + n_ixy, stack);
+                v = tree[v].right;
+            }else{
+                v = tree[v].left;
+            }
+        }
+                printf("4 "); print_arr(n_ixy, ixy_idxes); puts("");
+    }
+
+    return n_ixy;
 }

@@ -405,7 +405,7 @@ def gen_range_search_data(draw):
         includeds=includeds, excludeds=excludeds
     )
 
-@pytest.mark.skip(reason='not now')
+#@pytest.mark.skip(reason='not now')
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
     ixys = gen['ixys']
@@ -414,15 +414,19 @@ def test_prop__range_search(gen):
     max_key = gen['max_key']
     includeds = gen['includeds']
 
-    n_node, ixy_arr, tree, n_inserted = bst_tree(ixys, xORy)
+    n_node, ixy_arr, c_bst, n_inserted = bst_tree(ixys, xORy)
     
     ixy_idxes = (c_int * n_inserted)()
+    stack = (c_int * MAX_LEN)()
     n_included = bst.includeds1d(
-        n_node, tree, min_key, max_key, ixy_idxes)
+        c_bst, ixy_arr, xORy, min_key, max_key, ixy_idxes, stack)
 
-    actual_idxes = [int(i) for i in ixy_idxes]
+    actual_idxes = [int(i) for i in ixy_idxes[:n_included]]
     expect_idxes = F.lmap(F.first, includeds)
     #actual_ixys = F.lmap(cobj2tuple, ixy_idxes)
 
-    assert n_included == len(includeds)
-    assert actual_idxes == expect_idxes
+    tup_bst = tup_tree(c_bst[:n_inserted+4])
+    assert actual_idxes == expect_idxes, \
+        f'{actual_idxes} != {expect_idxes}, {tup_bst}'
+    assert n_included == len(includeds), \
+        f'{n_included} != {len(includeds)}, {tup_bst}'
