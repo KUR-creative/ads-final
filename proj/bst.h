@@ -10,6 +10,7 @@ typedef struct {
     // valid index > 0, 0 index means NULL.
     //  if l or r is (-), then idx of ixys.
     //  if p or l or r is (+), then idx of tree array.
+    // n_inode: as root of subtree, number of inode. 
 } Node;
 // Binary Search Tree is array of Node.
 

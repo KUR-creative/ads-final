@@ -1,5 +1,6 @@
 //map <F4> :wa<CR>:!rm libbst.so;make;python bst_test.py<CR>
 //map <F5> :wa<CR>:!rm libbst.so;make;pytest . -vv<CR>
+//map <F8> :wa<CR>:!rm libbst.so;make;pytest . -s -vv<CR>
 
 //Support Operations
 // insert(ixy)
@@ -34,11 +35,21 @@
 #include "bst.h"
 
 
-void print_arr(int n, Node arr[])
+void print_arr(int n, int arr[])
 {
     for(int i = 0; i < n; i++){
-        printf("%d %d %d %d \n", arr[i].key,
-            arr[i].parent, arr[i].left, arr[i].right);
+        printf("{%d}", arr[i]);
+    }
+}
+
+void print_stack(int top, int stack[])
+{
+    PRNd(top);
+    if(top > -1){
+        printf("stack: ");
+        for(int i = 0; i < top + 1; i++){
+            printf("[%d]", stack[i]);
+        }
     }
 }
 
@@ -176,13 +187,48 @@ int insert(int n_node, Node tree[], char xORy,
     return n_node;
 }
 
+        //TODO:remove
+        //printf("\nwtf -B- %d \n", curr);
+        //printf("wtf -A- %d \n", curr);
+
 // return: number of ixys in subtree.
 //  `idxes` is returned indexes(+) of ixy in ixys.
 //  So idxes are positive!
-int ixy_indexes(const Node tree[], int beg_idx, int idxes[]){
-    //Node root = tree[beg_idx];
-    return 0;
+//  `stack` is just int array, Managed in this function.
+int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
+                int stack[]){
+    int top = -1; // stack top
+    int n_ixy = 0;
+    int curr = beg_idx;
+    do{
+        while(curr > 0){
+            stack[++top] = curr;
+            curr = tree[curr].left;
+        }
+                //print_stack(top, stack); puts("");
+                //printf("before ret idxes(n_ixy = %d): ", n_ixy);
+                //print_arr(n_ixy, idxes); puts("");
+        if(top > -1){
+            int popped = stack[top--]; // popped: inode index
+            // log ixy indexes
+            int left = tree[popped].left;
+            if(left < 0){
+                idxes[n_ixy++] = -left;
+            }
+            int right = tree[popped].right;
+            if(right < 0){
+                idxes[n_ixy++] = -right;
+            }else if(right > 0){
+                curr = right;
+            }
+        }
+                //printf("\n after ret idxes(n_ixy = %d): ", n_ixy);
+                //print_arr(n_ixy, idxes); puts(""); //PRNd(top); PRNLd(curr);
+    } while(top > -1 || curr > 0);
+    // End if stack is empty && can't go deep
+    return n_ixy;
 }
+
 // return: number of included in range [min, max]
 //         included idxes of coordinates are saved in `ixys`
 //  TODO: add xORy as arg

@@ -316,19 +316,44 @@ def gen_ixy_indexes_data(draw):
 
 @given(gen_ixy_indexes_data())
 def test_prop__ixy_indexes(gen):
+    #print('====================')
     ixys = gen['ixys']; mode = gen['mode']; xORy=gen['xORy']
     c_bst = gen['c_bst']; n_inserted = gen['n_inserted']
     beg_idx = gen['beg_idx']
 
     ixy_idx_arr = (c_int * n_inserted)()
-    n_ixys = bst.ixy_indexes(c_bst, beg_idx, ixy_idx_arr)
+    stack = (c_int * MAX_LEN)()
+    n_ixys = bst.ixy_indexes(
+        c_bst, beg_idx, ixy_idx_arr, stack)
 
+    actual_idxes = [int(i) for i in ixy_idx_arr[:n_ixys]]
     tup_bst = tup_tree(c_bst[:n_inserted+4])
     expect_idxes = [-i for i in all_ixy_idxes(tup_bst, beg_idx)]
-    actual_idxes = [int(i) for i in ixy_idx_arr]
 
-    #assert n_ixys == len(expect_idxes), tup_bst
-    assert actual_idxes == expect_idxes
+    assert n_ixys == len(expect_idxes), tup_bst
+    assert actual_idxes == expect_idxes, \
+        f'{actual_idxes} != {expect_idxes}, {tup_bst}'
+    #print('--------------------')
+
+'''
+gen={'beg_idx': 2,
+     'c_bst': None,
+     'ixys': [(1, 1, 1), (2, 1, 2), (3, 1, 1)],
+     'mode': 'y',
+     'n_inserted': 3,
+     'xORy': c_char(b'y')}
+
+gen={'beg_idx': 2,
+     'c_bst': None,
+     'ixys': [(2, 1, 2), (1, 1, 1), (3, 1, 2)],
+     'mode': 'y',
+     'n_inserted': 3,
+     'xORy': c_char(b'y')}
+n_node, ixy_arr, c_bst, n_inserted = bst_tree(
+    gen['ixys'], gen['xORy'])
+gen['c_bst'] = c_bst
+test_prop__ixy_indexes(gen)
+'''
 
 
 @st.composite
