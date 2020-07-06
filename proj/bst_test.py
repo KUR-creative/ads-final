@@ -518,7 +518,7 @@ def gen_range_query2d_data(draw):
         ixys=ixys, ixy_map=ixy_map,
         min_x=min_x, max_x=max_x,
         min_y=min_y, max_y=max_y,
-        includeds=includeds#, excludeds=excludeds
+        includeds=includeds
     )
 
 #-------------------------------------------------------

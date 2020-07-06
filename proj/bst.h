@@ -16,7 +16,20 @@ typedef struct {
 
 #define KEY(ixy, mode) \
     (((mode) == 'x') ? (ixy).x : (ixy).y)
+
+void print_arr(int n, int arr[]);
+void print_stack(int top, int stack[]);
+void make_sparse(int len_dense, IXY dense_arr[], 
+                 IXY sparse_arr[]);
+
 int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[]);
 
+int includeds1d(const Node tree[], const IXY ixys[], 
+                char xORy, int min, int max, 
+                int ixy_idxes[], int stack[]);
+int includeds2d(const Node tree[], const IXY ixys[], 
+                int min_x, int max_x, 
+                int min_y, int max_y, 
+                int ret_arr[], int arr[]);
 #endif//_BST_
