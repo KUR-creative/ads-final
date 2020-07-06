@@ -159,80 +159,84 @@ def gen_ixys_mode_map(draw):
         map(F.first, ixys), map(tup(Ixy), ixys))
     return dict(ixys=ixys, mode=mode, ixy_map=ixy_map)
 
+def assert_valid_bst(ixys, mode, ixy_map, xORy, 
+                     ixy_arr, n_node, tree, n_inserted):
+    ''' tree is bst '''
+    key = prop(mode)
+    # Num of leaves ixy ref = num of inserted ixys
+    #   1. Get ixy idxs from memory
+    num_leaves = sum(
+        map(num_leaf, tree[1:n_inserted+1]))
+    assert n_inserted == num_leaves, \
+        'n_inserted = {}, tree = {}'.format(
+            n_inserted, tup_tree(tree[:n_inserted+4]))
+    # Parent must be positive value except root.
+    for i,node in enumerate(tree[1:n_inserted+1]):
+        assert node.parent >= 0, (n_inserted, i, pyobj(node))
+                               
+    #   2. Get ixy idxes from tree structure
+    ixy_idxes = all_ixy_idxes(
+        tup_tree(tree[:n_inserted+4]))
+    # Inserted number of ixys preserved?
+    no0idxes = F.compact([abs(i) for i in ixy_idxes])
+    assert n_inserted == len(no0idxes), \
+        'ixy_idxes = {}, tup_tree = {}'.format(
+            ixy_idxes, tup_tree(tree[:n_inserted+4]))
+    # All ixy have unique index.
+    assert len(set(no0idxes)) == n_inserted
+    # All leaves point ixy(neg idx), not inode.
+    assert all(idx <= 0 for idx in ixy_idxes), \
+        'ixy_idxes = {}, tree = {}'.format(
+            ixy_idxes, tup_tree(tree[:n_inserted+4]))
+
+    # Inserted ixys are sorted in ascending order.
+    inserted_ixys = F.lmap(
+        lambda i: ixy_arr[abs(i)], ixy_idxes)
+    for ixy1, ixy2 in F.pairwise(inserted_ixys): 
+        assert key(ixy1) <= key(ixy2), 'tree = {}' \
+            .format(tup_tree(tree[:n_inserted+4]))
+
+    # All leaves: l <= r
+    leaves = F.lfilter(is_leaf, tree[:n_inserted+4])
+    for leaf in leaves:
+        l = leaf.left; r = leaf.right
+        if l and r:
+            l_val = key(ixy_map[abs(l)])
+            r_val = key(ixy_map[abs(r)])
+            assert l_val <= r_val  
+
+    # All inodes must be sorted in ascending order.
+    inodes = all_inodes(tup_tree(tree[:n_inserted+4]))
+    for n1, n2 in F.pairwise(inodes):
+        k1 = n1[0]; k2 = n2[0]
+        assert k1 <= k2
+
+    # Inserted ixys are sorted in ascending order.
+    neg_idxeseq = F.mapcat(tup(
+        lambda k,p,l,r: 
+        ((l,) if l < 0 else ()) + ((r,) if r < 0 else ())),
+        inodes)
+    ixy_idxes = F.map(abs, neg_idxeseq)
+    saved_ixys = F.map(lambda i: pyobj(ixy_arr[i]), ixy_idxes)
+    keys = F.lmap(key, saved_ixys)
+    for k1,k2 in F.pairwise(keys):
+        assert k1 <= k2
+
 @given(gen_ixys_mode_map())
 def test_prop__bst_insert(gen):
     ixys, mode, ixy_map = gen['ixys'], gen['mode'], gen['ixy_map']
     xORy = c_char(mode.encode())
     ixy_arr = sparse_array(ixys)
 
-    key = prop(mode)
     n_node = 0 # empty
     tree = (NODE * MAX_LEN)()
     for n_inserted, (i,x,y) in enumerate(ixys, start=1):
         n_node = bst.insert(
             n_node, tree, xORy, i, ixy_arr)
 
-    # Num of leaves ixy ref = num of inserted ixys
-    #   1. Get ixy idxs from memory
-        num_leaves = sum(
-            map(num_leaf, tree[1:n_inserted+1]))
-        assert n_inserted == num_leaves, \
-            'n_inserted = {}, tree = {}'.format(
-                n_inserted, tup_tree(tree[:n_inserted+4]))
-        # Parent must be positive value except root.
-        for i,node in enumerate(tree[1:n_inserted+1]):
-            assert node.parent >= 0, (n_inserted, i, pyobj(node))
-                                   
-    #   2. Get ixy idxes from tree structure
-        ixy_idxes = all_ixy_idxes(
-            tup_tree(tree[:n_inserted+4]))
-        # Inserted number of ixys preserved?
-        no0idxes = F.compact([abs(i) for i in ixy_idxes])
-        assert n_inserted == len(no0idxes), \
-            'ixy_idxes = {}, tup_tree = {}'.format(
-                ixy_idxes, tup_tree(tree[:n_inserted+4]))
-        # All ixy have unique index.
-        assert len(set(no0idxes)) == n_inserted
-        # All leaves point ixy(neg idx), not inode.
-        assert all(idx <= 0 for idx in ixy_idxes), \
-            'ixy_idxes = {}, tree = {}'.format(
-                ixy_idxes, tup_tree(tree[:n_inserted+4]))
-
-        # Inserted ixys are sorted in ascending order.
-        inserted_ixys = F.lmap(
-            lambda i: ixy_arr[abs(i)], ixy_idxes)
-        for ixy1, ixy2 in F.pairwise(inserted_ixys): 
-            assert key(ixy1) <= key(ixy2), 'tree = {}' \
-                .format(tup_tree(tree[:n_inserted+4]))
-
-    # All leaves: l <= r
-        leaves = F.lfilter(is_leaf, tree[:n_inserted+4])
-        for leaf in leaves:
-            l = leaf.left; r = leaf.right
-            if l and r:
-                l_val = key(ixy_map[abs(l)])
-                r_val = key(ixy_map[abs(r)])
-                assert l_val <= r_val  
-
-    # All inodes must be sorted in ascending order.
-        inodes = all_inodes(tup_tree(tree[:n_inserted+4]))
-        for n1, n2 in F.pairwise(inodes):
-            k1 = n1[0]; k2 = n2[0]
-            assert k1 <= k2
-        # Inserted ixys are sorted in ascending order.
-        neg_idxeseq = F.mapcat(tup(
-            lambda k,p,l,r: 
-            ((l,) if l < 0 else ()) + ((r,) if r < 0 else ())),
-            inodes)
-        ixy_idxes = F.map(abs, neg_idxeseq)
-        saved_ixys = F.map(lambda i: pyobj(ixy_arr[i]), ixy_idxes)
-        keys = F.lmap(key, saved_ixys)
-        for k1,k2 in F.pairwise(keys):
-            assert k1 <= k2
-
-    # Largest (x/y) val of left subtree = root inode val.
-    # (When left subtree is not empty.)
-    # ㄴis this true? or important? TODO: remove it?
+        assert_valid_bst(
+            ixys, mode, ixy_map, xORy, 
+            ixy_arr, n_node, tree, n_inserted)
 
     #print('-------------------')
     #print(ixys)
