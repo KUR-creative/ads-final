@@ -363,7 +363,7 @@ def gen_range_search_data(draw):
     )
 
 #@pytest.mark.skip(reason='not now')
-@settings(max_examples=10000)
+#@settings(max_examples=10000)
 @given(gen_range_search_data() .filter(lambda g: g['max_key'] - g['min_key'] > 1))
 def test_prop__range_search(gen):
     ixys = gen['ixys']
@@ -523,7 +523,7 @@ def gen_range_query2d_data(draw):
 
 #-------------------------------------------------------
 #@pytest.mark.skip(reason='not now')
-@settings(max_examples=1000)
+#@settings(max_examples=10000)
 @given(gen_range_query2d_data())
 def test_prop__range_query2d(gen):
     ixys = gen['ixys']

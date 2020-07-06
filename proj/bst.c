@@ -246,13 +246,6 @@ int includeds1d(const Node tree[], const IXY ixys[],
         int k = tree[split].key;
         int l = tree[split].left; 
         int r = tree[split].right;
-        // Special case: l r keys are same
-        /*
-        if(node_key(l, tree, ixys, xORy) ==
-           node_key(r, tree, ixys, xORy)){
-            break;
-        }
-        */
         split = (max <= k ? l : r);
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
@@ -268,8 +261,6 @@ int includeds1d(const Node tree[], const IXY ixys[],
         return n_ixy; // Do nothing.
     }
 
-                        puts("0 stack:"); PRNd(top);
-                        print_arr(top + 1, stack);puts("");
     // Left path
     int v = tree[split].left; 
     while(v > 0){
@@ -281,14 +272,6 @@ int includeds1d(const Node tree[], const IXY ixys[],
             v = vr;
         }
     }
-                        puts("1 stack:"); PRNd(top);
-                        print_arr(top + 1, stack);puts("");
-                        /*
-                        PRNLd(v);
-                        PRNd(KEY(ixys[-v], xORy));
-                        puts("");
-                        */
-
     // Now, v <= 0, check v is included in [min,max]
     int vk = KEY(ixys[-v], xORy);
     if(v < 0 && min <= vk && vk <= max){
@@ -296,18 +279,11 @@ int includeds1d(const Node tree[], const IXY ixys[],
     }
     // Save begin index of left vertices.
     int beg_left_vs = top; 
-                        puts("stack:"); PRNd(top);
-                        print_arr(top + 1, stack);puts("");
+
     // Right path
     v = tree[split].right;
     while(v > 0){ 
         int vl = tree[v].left;
-                        puts("----");
-                        PRNd(v);
-                        PRNd(tree[v].key);
-                        PRNd(max);
-                        PRNLd(tree[v].key < max);
-                        puts("----");
         if(tree[v].key <= max){
             stack[++top] = vl;
             v = tree[v].right;
@@ -315,16 +291,12 @@ int includeds1d(const Node tree[], const IXY ixys[],
             v = vl;
         }
     }
-                        puts("-1 stack:"); PRNd(top);
-                        print_arr(top + 1, stack);puts("");
-                        PRNd(v); puts("");
     // Now, v <= 0, check v is included in [min,max]
     vk = KEY(ixys[-v], xORy);
     if(v < 0 && min <= vk && vk <= max){
         stack[++top] = v;
     }
-                        puts("-0 stack:"); PRNd(top);
-                        print_arr(top + 1, stack);puts("");
+
     // Copy left_vs from stack to vla array in reverse.
     int n_vs = top + 1;
     int vs[n_vs]; int i_vs = 0;
