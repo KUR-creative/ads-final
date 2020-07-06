@@ -280,7 +280,7 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
     if(v < 0 && min <= KEY(ixys[-v], xORy)){
         stack[++top] = v;
     }
-    // Save number of left vertices.
+    // Save begin index of left vertices.
     int beg_left_vs = top; 
 
     // Right path
@@ -321,4 +321,16 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
         }
     }
     return n_ixy;
+}
+
+
+// return: number of included in range [min, max]
+//  included idxes of coordinates are saved in `ixys`
+//  `stack` is just int array, Managed in this function.
+int includeds2d(const Node tree[], const IXY ixys[], 
+                int min_x, int max_x, 
+                int min_y, int max_y, 
+                int ixy_idxes[], int stack[])
+{
+    return 0;
 }

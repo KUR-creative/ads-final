@@ -364,9 +364,6 @@ def gen_range_search_data(draw):
 #@pytest.mark.skip(reason='not now')
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
-    from pprint import pprint
-    print('---------------')
-    pprint(gen);
     ixys = gen['ixys']
     mode = gen['mode']; xORy = c_char(mode.encode())
     min_key = gen['min_key']
@@ -442,3 +439,88 @@ gen={'excludeds': [],
      'mode': 'y'}
 test_prop__range_search(gen)
 '''
+
+@st.composite
+def gen_range_query2d_data(draw):
+    global MAX_LEN
+    max_key = 2147483647 #2**31
+    
+    ixys = draw(st.lists(
+        st.tuples(
+            st.integers(min_value=1, max_value=MAX_LEN),
+            st.integers(min_value=1, max_value=max_key),
+            st.integers(min_value=1, max_value=max_key),
+        ),
+        min_size=2, max_size=MAX_LEN,
+        unique_by=lambda ixy:ixy[0]
+    ))
+    
+    nt_ixys = F.lmap(tup(Ixy), ixys)
+    # min/max x
+    max_x_ = max(map(prop('x'),nt_ixys))
+    max_xv = min(max_x_ + max_x_ // 2, max_key)
+    min_x_ = min(map(prop('x'),nt_ixys))
+    min_xv = max(min_x_ - min_x_ // 2, 1)
+    min_x, max_x = sorted([
+        draw(st.integers(
+            min_value=min_xv, max_value=max_xv)),
+        draw(st.integers(
+            min_value=min_xv, max_value=max_xv))
+    ])
+    # min/max y
+    max_y_ = max(map(prop('y'),nt_ixys))
+    max_yv = min(max_y_ + max_y_ // 2, max_key)
+    min_y_ = min(map(prop('y'),nt_ixys))
+    min_yv = max(min_y_ - min_y_ // 2, 1)
+    min_y, max_y = sorted([
+        draw(st.integers(
+            min_value=min_yv, max_value=max_yv)),
+        draw(st.integers(
+            min_value=min_yv, max_value=max_yv))
+    ])
+    
+    def included(ixy):
+        return(min_x <= ixy.x <= max_x
+           and min_y <= ixy.y <= max_y)
+    #def excluded(ixy): return key(ixy) < min_key or max_key < key(ixy)
+    includeds = go(
+        filter(included,nt_ixys),
+        F.partial(sorted, key=prop('x')),
+        F.curry(F.lmap)(tuple))
+    #excludeds = [tuple(ixy) for ixy in filter(excluded,nt_ixys)]
+    
+    ixy_map = F.zipdict(
+        map(F.first, ixys), map(tup(Ixy), ixys))
+    return dict(
+        ixys=ixys, ixy_map=ixy_map,
+        min_x=min_x, max_x=max_x,
+        min_y=min_y, max_y=max_y,
+        includeds=includeds#, excludeds=excludeds
+    )
+
+#from pprint import pprint
+@given(gen_range_query2d_data())
+def test_prop__range_query2d(gen):
+    ixys = gen['ixys']
+    min_x = gen['min_x']; max_x = gen['max_x']
+    min_y = gen['min_y']; max_y = gen['max_y']
+    includeds = gen['includeds']
+
+    n_node, ixy_arr, c_bst, n_inserted = \
+        bst_tree(ixys, c_char('x'.encode()))
+    tup_bst = tup_tree(c_bst[:n_inserted+4])
+
+    ixy_idxes = (c_int * n_inserted)()
+    stack = (c_int * MAX_LEN)()
+    n_included = bst.includeds2d(
+        c_bst, ixy_arr, min_x, max_x, min_y, max_y, 
+        ixy_idxes, stack)
+
+    actual_idxes = [int(i) for i in ixy_idxes[:n_included]]
+    expect_idxes = F.lmap(F.first, includeds)
+    assert set(actual_idxes) == set(expect_idxes), \
+        f'{actual_idxes} != {expect_idxes}, {tup_bst}'
+    for i1, i2 in F.pairwise(actual_idxes):
+        assert ixy_arr[i1].x <= ixy_arr[i2].x
+    assert n_included == len(includeds), \
+        f'{n_included} != {len(includeds)}, {tup_bst}'
