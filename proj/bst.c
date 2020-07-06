@@ -199,8 +199,8 @@ int insert(int n_node, Node tree[], char xORy,
 // return: number of ixys in subtree.
 //  `idxes` is returned indexes(+) of ixy in ixys.
 //  So idxes are positive!
-int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
-                int stack[]){
+int ixy_indexes(const Node tree[], int beg_idx, 
+                int idxes[], int stack[]){
     int top = -1; // stack top
     int n_ixy = 0;
     int curr = beg_idx;
@@ -231,9 +231,9 @@ int ixy_indexes(const Node tree[], int beg_idx, int idxes[],
 // return: number of included in range [min, max]
 //         included idxes of coordinates are saved in `ixys`
 //         `stack` is just int array, Managed in this function.
-int includeds1d(const Node tree[], const IXY ixys[], char xORy,
-                int min, int max, int ixy_idxes[],
-                int stack[])
+int includeds1d(const Node tree[], const IXY ixys[], 
+                char xORy, int min, int max, 
+                int ixy_idxes[], int stack[])
 {
     int top = -1; // stack top.
     int n_ixy = 0;
@@ -255,6 +255,7 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
     
+    PRNd(split);puts("");
     if(split < 0){
         int k = KEY(ixys[-split], xORy);
         if(min <= k && k <= max){
@@ -277,7 +278,8 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
         }
     }
     // Now, v <= 0, check v is included in [min,max]
-    if(v < 0 && min <= KEY(ixys[-v], xORy)){
+    int kv = KEY(ixys[-v], xORy);
+    if(v < 0 && min <= kv && kv <= max){
         stack[++top] = v;
     }
     // Save begin index of left vertices.
@@ -295,7 +297,8 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
         }
     }
     // Now, v <= 0, check v is included in [min,max]
-    if(v < 0 && KEY(ixys[-v], xORy) <= max){
+    kv = KEY(ixys[-v], xORy);
+    if(v < 0 && min <= kv && kv <= max){
         stack[++top] = v;
     }
 
@@ -325,12 +328,27 @@ int includeds1d(const Node tree[], const IXY ixys[], char xORy,
 
 
 // return: number of included in range [min, max]
-//  included idxes of coordinates are saved in `ixys`
-//  `stack` is just int array, Managed in this function.
+//  included idxes of coordinates are saved in `ret_arr`
+//  `arr` is just int array, Managed in this function.
+//  ret_arr is sorted in x, not y.
 int includeds2d(const Node tree[], const IXY ixys[], 
                 int min_x, int max_x, 
                 int min_y, int max_y, 
-                int ixy_idxes[], int stack[])
+                int ret_arr[], int arr[])
 {
-    return 0;
+    // Use ret_arr as stack of includeds1d TEMPORARILY 
+    int* x_sorted = arr;
+    int* stack = ret_arr; // temporary calc space
+    int n_xsorted = includeds1d(
+        tree, ixys, 'x', min_x, max_x, x_sorted, stack);
+
+    // Use arr as just an int array
+    int n_ret = 0;
+    for(int i = 0; i < n_xsorted; i++){
+        int idx = x_sorted[i];
+        if(min_y <= ixys[idx].y && ixys[idx].y <= max_y){
+            ret_arr[n_ret++] = idx;
+        }
+    }
+    return n_ret;
 }

@@ -5,7 +5,7 @@ import random
 
 import funcy as F
 import pytest
-from hypothesis import given, example
+from hypothesis import given, example, settings
 from hypothesis import strategies as st
 
 
@@ -271,6 +271,7 @@ def gen_ixy_indexes_data(draw):
                 c_bst=c_bst, n_inserted=n_inserted,
                 beg_idx=beg_idx)
 
+#@settings(max_examples=500)
 @given(gen_ixy_indexes_data())
 def test_prop__ixy_indexes(gen):
     #print('====================')
@@ -362,6 +363,7 @@ def gen_range_search_data(draw):
     )
 
 #@pytest.mark.skip(reason='not now')
+#@settings(max_examples=2000)
 @given(gen_range_search_data())
 def test_prop__range_search(gen):
     ixys = gen['ixys']
@@ -372,7 +374,7 @@ def test_prop__range_search(gen):
 
     n_node, ixy_arr, c_bst, n_inserted = bst_tree(ixys, xORy)
     tup_bst = tup_tree(c_bst[:n_inserted+4])
-    pprint(tup_bst)
+    #pprint(tup_bst)
     
     ixy_idxes = (c_int * n_inserted)()
     stack = (c_int * MAX_LEN)()
@@ -437,6 +439,13 @@ gen={'excludeds': [],
      'max_key': 1,
      'min_key': 1,
      'mode': 'y'}
+gen={'excludeds': [(1, 1, 2), (2, 1, 2)],
+     'includeds': [],
+     'ixy_map': {1: Ixy(i=1, x=1, y=2), 2: Ixy(i=2, x=1, y=2)},
+     'ixys': [(1, 1, 2), (2, 1, 2)],
+     'max_key': 1,
+     'min_key': 1,
+     'mode': 'y'}
 test_prop__range_search(gen)
 '''
 
@@ -498,7 +507,9 @@ def gen_range_query2d_data(draw):
         includeds=includeds#, excludeds=excludeds
     )
 
-#from pprint import pprint
+#-------------------------------------------------------
+#@settings(max_examples=500)
+@pytest.mark.skip(reason='not now')
 @given(gen_range_query2d_data())
 def test_prop__range_query2d(gen):
     ixys = gen['ixys']
