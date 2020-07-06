@@ -159,8 +159,8 @@ def gen_ixys_mode_map(draw):
         map(F.first, ixys), map(tup(Ixy), ixys))
     return dict(ixys=ixys, mode=mode, ixy_map=ixy_map)
 
-def assert_valid_bst(ixys, mode, ixy_map, xORy, 
-                     ixy_arr, n_node, tree, n_inserted):
+def assert_valid_bst(mode, ixy_map,
+                     ixy_arr, tree, n_inserted):
     ''' tree is bst '''
     key = prop(mode)
     # Num of leaves ixy ref = num of inserted ixys
@@ -235,12 +235,84 @@ def test_prop__bst_insert(gen):
             n_node, tree, xORy, i, ixy_arr)
 
         assert_valid_bst(
-            ixys, mode, ixy_map, xORy, 
-            ixy_arr, n_node, tree, n_inserted)
+            mode, ixy_map, ixy_arr, tree, n_inserted)
 
     #print('-------------------')
     #print(ixys)
     #print(F.lmap(cobj2tuple,tree[:len(ixys)+3]))
+
+@st.composite
+def gen_bst_delete_data(draw):
+    ixys = draw(st.lists(
+        st.tuples(
+            st.integers(min_value=1, max_value=MAX_LEN),
+            st.integers(min_value=1, max_value=2**31),
+            st.integers(min_value=1, max_value=2**31),
+        ),
+        min_size=3, max_size=MAX_LEN,
+        unique_by=lambda ixy:ixy[0]
+    ))
+
+    ixy_idxes = F.lmap(F.first, ixys)
+    ixy_map = F.zipdict(
+        ixy_idxes, map(tup(Ixy), ixys))
+
+    # if tuple, ixy. if int, delete index.
+    # if +: ins, -: del
+    cmd_idxes = ixy_idxes + [-i for i in ixy_idxes]
+    random.shuffle(cmd_idxes)
+
+    return dict(ixys=ixys, del_idxes=ixy_idxes, 
+                ixy_map=ixy_map, cmd_idxes=cmd_idxes)
+
+@given(gen_bst_delete_data())
+def test_prop__bst_delete(gen):
+    ixys, ixy_map = gen['ixys'], gen['ixy_map']
+    mode = 'x'; cmd_idxes = gen['cmd_idxes']
+
+    n_node = 0 # empty
+    tree = (NODE * MAX_LEN)()
+    stack = (c_int * MAX_LEN)()
+    ixy_arr = sparse_array(ixys)
+
+    inserted_idxes = []
+    n_inserted = 0
+    #print('-----------------')
+    for idx in cmd_idxes:
+        if idx > 0:
+            n_node = bst.insert(
+                n_node, tree, c_char(b'x'), idx, ixy_arr)
+
+            n_inserted += 1
+            inserted_idxes.append(idx)
+
+            assert_valid_bst(
+                mode, ixy_map, ixy_arr, tree, n_inserted)
+        else: # no idx = 0 case
+            before_ixy_idxes = all_ixy_idxes(
+                tup_tree(tree[:n_inserted+4]))
+            n_node = bst.delete(
+                n_node, tree, c_char(b'x'), idx, ixy_arr)
+
+            assert_valid_bst(
+                mode, ixy_map, ixy_arr, tree, n_inserted)
+
+            if -idx in inserted_idxes:
+                inserted_idxes.remove(-idx) 
+                after_ixy_idxes = all_ixy_idxes(
+                    tup_tree(tree[:n_inserted+4]))
+                assert idx not in after_ixy_idxes
+
+                before_len = len(before_ixy_idxes)
+                after_len = len(after_ixy_idxes)
+                #TODO
+                #assert before_len + 1 == after_len
+
+
+
+#from pprint import pprint
+#pprint(gen_bst_delete_data().example())
+
 
 def bst_tree(ixys, xORy):
     '''

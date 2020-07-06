@@ -192,6 +192,12 @@ int insert(int n_node, Node tree[], char xORy,
     return n_node;
 }
 
+int delete(int n_node, Node tree[], char xORy,
+           int iidx, IXY ixys[])
+{
+    return n_node;
+}
+
 // Inorder traversal from Node: tree[beg_idx].
 // Report all ixys in the tree[beg_idx].
 // `stack` is just int array, Managed in this function.
