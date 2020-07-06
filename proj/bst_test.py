@@ -362,29 +362,9 @@ def gen_range_search_data(draw):
         includeds=includeds, excludeds=excludeds
     )
 
-ex1 = {'includeds': [(2, 1, 1), (3, 2, 1), (1, 2, 1)],
-     'ixy_map': {1: Ixy(i=1, x=2, y=1),
-      2: Ixy(i=2, x=1, y=1),
-      3: Ixy(i=3, x=2, y=1)},
-     'ixys': [(2, 1, 1), (3, 2, 1), (1, 2, 1)],
-     'mode': 'x',
-     'min_key': 1,
-     'max_key': 2,
-     'max_y': 1,
-     'min_y': 1}
-ex2 ={'includeds': [(2, 1, 1), (3, 2, 1), (1, 2, 1)],
-     'ixy_map': {1: Ixy(i=1, x=2, y=1),
-      2: Ixy(i=2, x=1, y=1),
-      3: Ixy(i=3, x=2, y=1)},
-     'ixys': [(2, 1, 1), (3, 2, 1), (1, 2, 1)],
-     'max_x': 2,
-     'max_y': 1,
-     'min_x': 1,
-     'min_y': 1}
 #@pytest.mark.skip(reason='not now')
 @settings(max_examples=10000)
-@given(gen_range_search_data())
-@example(ex2)
+@given(gen_range_search_data() .filter(lambda g: g['max_key'] - g['min_key'] > 1))
 def test_prop__range_search(gen):
     ixys = gen['ixys']
     mode = gen['mode']; xORy = c_char(mode.encode())
@@ -466,9 +446,22 @@ gen={'excludeds': [(1, 1, 2), (2, 1, 2)],
      'max_key': 1,
      'min_key': 1,
      'mode': 'y'}
-gen = ex1
-test_prop__range_search(gen)
+
+ex={'excludeds': [(2, 1, 1), (3, 1, 2), (4, 1, 2), (1, 1, 172)],
+ 'includeds': [],
+ 'ixy_map': {1: Ixy(i=1, x=1, y=172),
+  2: Ixy(i=2, x=1, y=1),
+  3: Ixy(i=3, x=1, y=2),
+  4: Ixy(i=4, x=1, y=2)},
+ 'ixys': [(2, 1, 1), (3, 1, 2), (4, 1, 2), (1, 1, 172)],
+ 'max_key': 5,
+ 'min_key': 3,
+ 'mode': 'y'}
+from pprint import pprint
+pprint(ex)
+test_prop__range_search(ex)
 '''
+
 
 @st.composite
 def gen_range_query2d_data(draw):
@@ -529,8 +522,8 @@ def gen_range_query2d_data(draw):
     )
 
 #-------------------------------------------------------
-#@settings(max_examples=500)
-@pytest.mark.skip(reason='not now')
+#@pytest.mark.skip(reason='not now')
+@settings(max_examples=1000)
 @given(gen_range_query2d_data())
 def test_prop__range_query2d(gen):
     ixys = gen['ixys']

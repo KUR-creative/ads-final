@@ -247,10 +247,12 @@ int includeds1d(const Node tree[], const IXY ixys[],
         int l = tree[split].left; 
         int r = tree[split].right;
         // Special case: l r keys are same
+        /*
         if(node_key(l, tree, ixys, xORy) ==
            node_key(r, tree, ixys, xORy)){
             break;
         }
+        */
         split = (max <= k ? l : r);
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
@@ -288,8 +290,8 @@ int includeds1d(const Node tree[], const IXY ixys[],
                         */
 
     // Now, v <= 0, check v is included in [min,max]
-    int kv = KEY(ixys[-v], xORy);
-    if(v < 0 && min <= kv && kv <= max){
+    int vk = KEY(ixys[-v], xORy);
+    if(v < 0 && min <= vk && vk <= max){
         stack[++top] = v;
     }
     // Save begin index of left vertices.
@@ -317,8 +319,8 @@ int includeds1d(const Node tree[], const IXY ixys[],
                         print_arr(top + 1, stack);puts("");
                         PRNd(v); puts("");
     // Now, v <= 0, check v is included in [min,max]
-    kv = KEY(ixys[-v], xORy);
-    if(v < 0 && min <= kv && kv <= max){
+    vk = KEY(ixys[-v], xORy);
+    if(v < 0 && min <= vk && vk <= max){
         stack[++top] = v;
     }
                         puts("-0 stack:"); PRNd(top);
