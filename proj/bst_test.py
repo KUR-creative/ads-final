@@ -249,7 +249,7 @@ def gen_bst_delete_data(draw):
             st.integers(min_value=1, max_value=2**31),
             st.integers(min_value=1, max_value=2**31),
         ),
-        min_size=3, max_size=MAX_LEN,
+        min_size=1, max_size=MAX_LEN,
         unique_by=lambda ixy:ixy[0]
     ))
 
@@ -265,14 +265,18 @@ def gen_bst_delete_data(draw):
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
 
-@given(gen_bst_delete_data())
+#@given(gen_bst_delete_data())
 def test_prop__bst_delete(gen):
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
     mode = 'x'; cmd_idxes = gen['cmd_idxes']
 
     n_node = 0 # empty
     tree = (NODE * MAX_LEN)()
+
+    ixy_idxes = (c_int * MAX_LEN)()
+    prevs = (c_int * MAX_LEN)()
     stack = (c_int * MAX_LEN)()
+
     ixy_arr = sparse_array(ixys)
 
     inserted_idxes = []
@@ -292,22 +296,35 @@ def test_prop__bst_delete(gen):
             before_ixy_idxes = all_ixy_idxes(
                 tup_tree(tree[:n_inserted+4]))
             n_node = bst.delete(
-                n_node, tree, c_char(b'x'), idx, ixy_arr)
-
-            assert_valid_bst(
-                mode, ixy_map, ixy_arr, tree, n_inserted)
+                n_node, tree, -idx, ixy_arr,
+                ixy_idxes, prevs, stack)
 
             if -idx in inserted_idxes:
                 inserted_idxes.remove(-idx) 
-                after_ixy_idxes = all_ixy_idxes(
-                    tup_tree(tree[:n_inserted+4]))
-                assert idx not in after_ixy_idxes
+                py_bst = tup_tree(tree[:n_inserted+4])
+                after_ixy_idxes = all_ixy_idxes(py_bst)
+                assert idx not in after_ixy_idxes, py_bst
 
                 before_len = len(before_ixy_idxes)
                 after_len = len(after_ixy_idxes)
                 #TODO
                 #assert before_len + 1 == after_len
 
+                n_inserted -= 1
+
+            assert_valid_bst(
+                mode, ixy_map, ixy_arr, tree, n_inserted)
+
+
+'''
+gen={'cmd_idxes': [1, -1],
+     'del_idxes': [1],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1)},
+     'ixys': [(1, 1, 1)]}
+print(gen)
+test_prop__bst_delete(gen)
+exit();
+'''
 
 
 #from pprint import pprint
@@ -358,7 +375,7 @@ def test_prop__ixy_indexes(gen):
     ixy_idx_arr = (c_int * n_inserted)()
     stack = (c_int * MAX_LEN)()
     n_ixys = bst.ixy_indexes(
-        c_bst, beg_idx, ixy_idx_arr, stack)
+        c_bst, beg_idx, ixy_idx_arr, None, stack)
 
     actual_idxes = [int(i) for i in ixy_idx_arr[:n_ixys]]
     tup_bst = tup_tree(c_bst[:n_inserted+4])

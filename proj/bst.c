@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include "bst.h"
+#include <assert.h>
 
 
 void print_arr(int n, int arr[])
@@ -192,12 +193,6 @@ int insert(int n_node, Node tree[], char xORy,
     return n_node;
 }
 
-int delete(int n_node, Node tree[], char xORy,
-           int iidx, IXY ixys[])
-{
-    return n_node;
-}
-
 // Inorder traversal from Node: tree[beg_idx].
 // Report all ixys in the tree[beg_idx].
 // `stack` is just int array, Managed in this function.
@@ -206,7 +201,8 @@ int delete(int n_node, Node tree[], char xORy,
 //  `idxes` is returned indexes(+) of ixy in ixys.
 //  So idxes are positive!
 int ixy_indexes(const Node tree[], int beg_idx, 
-                int idxes[], int stack[]){
+                int ixy_idxes[], int prevs[], 
+                int stack[]){
     int top = -1; // stack top
     int n_ixy = 0;
     int curr = beg_idx;
@@ -220,11 +216,16 @@ int ixy_indexes(const Node tree[], int beg_idx,
             // log ixy indexes
             int left = tree[popped].left;
             if(left < 0){
-                idxes[n_ixy++] = -left;
+                if(prevs){ prevs[n_ixy] = popped; }
+                PRNd(popped);
+                PRNd(n_ixy);
+                ixy_idxes[n_ixy++] = -left;
             }
             int right = tree[popped].right;
             if(right < 0){
-                idxes[n_ixy++] = -right;
+                if(prevs){ prevs[n_ixy] = popped; }
+                PRNd(popped);
+                ixy_idxes[n_ixy++] = -right;
             }else if(right > 0){
                 curr = right;
             }
@@ -319,7 +320,7 @@ int includeds1d(const Node tree[], const IXY ixys[],
         v = vs[i];
         if(v > 0){
             n_ixy += ixy_indexes(
-                tree, v, ixy_idxes + n_ixy, stack);
+                tree, v, ixy_idxes + n_ixy, NULL, stack);
         }else if(v < 0){
             ixy_idxes[n_ixy++] = -v;
         }
@@ -353,3 +354,81 @@ int includeds2d(const Node tree[], const IXY ixys[],
     }
     return n_ret;
 }
+
+// if delete success then return SUCCESS.
+// else return FAILURE.
+// search tree by 'x', then search with 'y'.
+//  ixy_idxes, prevs, stack are just space for calc
+int delete(int n_node, Node tree[], int iidx, IXY ixys[], 
+           int ixy_idxes[], int prevs[], int stack[])
+{
+    IXY want = ixys[iidx];
+    int parent = 0; // parent of want ixy.
+
+    // Search by x in tree.
+    int prev = 0;
+    int split = 1;
+    while(split > 0 && // split is not a leaf
+          tree[split].key != want.x){ // 
+        prev = split;
+        int k = tree[split].key;
+        int l = tree[split].left; 
+        int r = tree[split].right;
+        split = (want.x <= k ? l : r);
+    }
+    // Now, split is idx of tree(+) or idx of ixys(-) or 0.
+    
+        //PRNLd(split); puts("");
+    // Get parent(prev) of wanted ixy.
+    if(split < 0){
+        IXY ixy = ixys[-split];
+        if(ixy.i == want.i){
+            parent = prev;
+        }
+    }else if(split == 0){ // Do nothing.
+        return FAILURE;
+    }else{
+        int n_ixys = ixy_indexes(
+            tree, split, ixy_idxes, prevs, stack);
+        //printf("[%d|%d]", split, parent); puts("");
+                if(n_ixys <= 0){
+                    puts("invalid bst");
+                    assert(n_ixys > 0);
+                }
+        if(n_ixys == 1){
+            PRNd(prevs[0]);
+            if(ixys[ixy_idxes[0]].i == want.i){
+                parent = prevs[0]; // idx of inode
+                PRNd(n_ixys);
+                PRNd(parent);
+                puts("");
+            }
+        }else{
+        }
+    }
+
+    // Delete ixy. Now we know parent.
+    //assert(prev > 0);
+    if(tree[parent].left && tree[parent].right){ // no 0
+        if(tree[parent].left == -want.i){
+            tree[parent].left = 0;
+        }else{
+            assert(tree[parent].right == -want.i);
+            tree[parent].right = 0;
+        }
+    }else{ //
+        // remove leaf
+        if(tree[parent].left == -want.i){
+            tree[parent].left = 0;
+        }else{
+            assert(tree[parent].right == -want.i);
+            tree[parent].right = 0;
+        }
+        if(parent == 1){ // root case
+            tree[parent].key = 0;
+        }
+    }
+
+    return n_node;
+}
+
