@@ -67,8 +67,8 @@ def tup_tree(tree): return F.lmap(cobj2tuple, tree)
 def is_tup_leaf(node):
     v,p,l,r = node
     return l <= 0 and r <= 0
+'''
 def all_ixy_idxes(tup_tree, beg_idx=1):
-    ''' Gey ixy indexes in (tuple mapped) tree '''
     def tup_or_empty(i):
         return (i,) if i else ()
     def leaf(l, r):
@@ -81,6 +81,7 @@ def all_ixy_idxes(tup_tree, beg_idx=1):
         return(leaf(l, r) if is_tup_leaf(node)
           else node_or_leaf(l) + node_or_leaf(r))
     return ixy_idxes(tup_tree[beg_idx])
+'''
 
 def all_inodes(tup_tree, beg_idx=1):
     def inodes(node):
@@ -93,6 +94,15 @@ def all_inodes(tup_tree, beg_idx=1):
     if l == 0 and r == 0:
         return []
     return inodes(root)
+
+def all_ixy_idxes(tup_tree, beg_idx=1):
+    ''' Gey ixy indexes in (tuple mapped) tree '''
+    return F.lmapcat(
+        tup(lambda v,p,l,r:
+            (([l] if l < 0 else [])
+            +([r] if r < 0 else []))),
+        all_inodes(tup_tree, beg_idx))
+
 
 '''
 xs = (Ixy(), 
@@ -134,18 +144,18 @@ def test_leaf_ixy_idxes():
           Ixy(), Ixy(), Ixy(), Ixy(4,3,4), Ixy(5,3,5), 
           Ixy(), Ixy(7,8,4), Ixy(8,4,5), Ixy(), Ixy())
     tt = (Node(), Node())
-    assert all_ixy_idxes(tt) == ()
+    assert all_ixy_idxes(tt) == []
     tt = (Node(), 
           Node(1,  0, 0, 2), Node(3,  1, 3, 4), 
           Node(3,  2,-5,-4), Node(4,  1,-8,-7), Node())
-    assert all_ixy_idxes(tt) == (-5, -4, -8, -7)
+    assert all_ixy_idxes(tt) == [-5, -4, -8, -7]
     tt = (Node(), (1, 0, -1, 0), Node())
-    assert all_ixy_idxes(tt) == (-1,)
+    assert all_ixy_idxes(tt) == [-1,]
     tt = (Node(), (1, 0, -1, -4), Node())
-    assert all_ixy_idxes(tt) == (-1, -4)
+    assert all_ixy_idxes(tt) == [-1, -4]
     tt = [(0, 0, 0, 0), (1, 0, 2, -2), (1, 1, -1, -3), 
           (0, 0, 0, 0), (0, 0, 0, 0)]
-    assert all_ixy_idxes(tt) == (-1, -3, -2)
+    assert all_ixy_idxes(tt) == [-1, -3, -2]
     #print(F.lmap(lambda i: xs[abs(i)], all_ixy_idxes(tt)))
 
 @st.composite
@@ -183,7 +193,7 @@ def assert_valid_bst(mode, ixy_map,
                                
     #   2. Get ixy idxes from tree structure
     ixy_idxes = all_ixy_idxes(
-        tup_tree(tree[:n_inserted+4]))
+        tup_tree(tree[:n_inserted+100]))
     # Inserted number of ixys preserved?
     no0idxes = F.compact([abs(i) for i in ixy_idxes])
     assert n_inserted == len(no0idxes), \
@@ -213,7 +223,7 @@ def assert_valid_bst(mode, ixy_map,
             assert l_val <= r_val  
 
     # All inodes must be sorted in ascending order.
-    inodes = all_inodes(tup_tree(tree[:n_inserted+4]))
+    inodes = all_inodes(tup_tree(tree[:n_inserted+100]))
     for n1, n2 in F.pairwise(inodes):
         k1 = n1[0]; k2 = n2[0]
         assert k1 <= k2
@@ -271,9 +281,10 @@ def gen_bst_delete_data(draw):
 
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
-DBG = True
-#DBG = False
+#DBG = True
+DBG = False
 #@given(gen_bst_delete_data())
+@pytest.mark.skip(reason='not now')
 def test_prop__bst_delete(gen):
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
     mode = 'x'; cmd_idxes = gen['cmd_idxes']
@@ -301,8 +312,6 @@ def test_prop__bst_delete(gen):
 
             n_inserted += 1
             inserted_idxes.append(idx)
-            #print('iixs',inserted_idxes)
-            #print(n_node)
 
             assert_valid_bst(
                 mode, ixy_map, ixy_arr, tree, n_inserted)
@@ -331,18 +340,16 @@ def test_prop__bst_delete(gen):
                 assert before_bst == after_bst,\
                     f'{before_bst} != \n {after_bst}'
                     
-            after_bst = tup_tree(tree[:n_inserted+4])
-            if DBG: print(f' after[{n_node}]', after_bst)############
             assert_valid_bst(
                 mode, ixy_map, ixy_arr, tree, n_inserted)
 
-        after_bst = tup_tree(tree[:n_inserted+4])
+        after_bst = tup_tree(tree[:n_inserted+100])
         if DBG: print(f' after[{n_node}]', after_bst)############
         assert n_node == len(all_inodes(after_bst)), \
             f'{n_node} != {len(all_inodes(after_bst))}, after_bst = {after_bst}'
 
 
-#'''
+'''
 gen={'cmd_idxes': [1, -1],
      'del_idxes': [1],
      'ixy_map': {1: Ixy(i=1, x=1, y=1)},
