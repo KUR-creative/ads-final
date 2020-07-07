@@ -86,14 +86,18 @@ def all_ixy_idxes(tup_tree, beg_idx=1):
 def all_inodes(tup_tree, beg_idx=1):
     def inodes(node):
         v,p,l,r = node
+        #print(l, tup_tree)
         left  = inodes(tup_tree[l]) if l > 0 else []
         right = inodes(tup_tree[r]) if r > 0 else []
         return [*left, node, *right]
-    root = tup_tree[beg_idx]
-    _,_,l,r = root
-    if l == 0 and r == 0:
+    if len(tup_tree) >= 2:
+        root = tup_tree[beg_idx]
+        _,_,l,r = root
+        if l == 0 and r == 0:
+            return []
+        return inodes(root)
+    else:
         return []
-    return inodes(root)
 
 def all_ixy_idxes(tup_tree, beg_idx=1):
     ''' Gey ixy indexes in (tuple mapped) tree '''
@@ -289,9 +293,9 @@ def gen_bst_delete_data(draw):
 
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
-DBG = True
-#DBG = False
-#@given(gen_bst_delete_data())
+#DBG = True
+DBG = False
+@given(gen_bst_delete_data())
 #@pytest.mark.skip(reason='not now')
 def test_prop__bst_delete(gen):
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
@@ -311,7 +315,8 @@ def test_prop__bst_delete(gen):
     #print('-----------------')
     #pprint(gen) print(1)
     for idx in cmd_idxes:
-        before_bst = tup_tree(tree[:n_inserted+4])
+        #print(n_inserted, n_inserted+4, n_node)
+        before_bst = tup_tree(tree[:n_inserted+n_node])
         if DBG: print(f"\n---- {idx} ----")########################
         if DBG: print(f'before[{n_node}]', 
                 [f'{p} {l} {r}' for _,p,l,r in before_bst])###########
@@ -326,15 +331,16 @@ def test_prop__bst_delete(gen):
                 mode, ixy_map, ixy_arr, tree, 
                 n_inserted, n_node)
         else: # no idx = 0 case
+
             before_ixy_idxes = all_ixy_idxes(
-                tup_tree(tree[:n_inserted+4]))
+                before_bst)
             n_node = bst.delete(
                 n_node, tree, -idx, ixy_arr,
                 ixy_idxes, prevs, stack)
 
             if -idx in inserted_idxes:
                 inserted_idxes.remove(-idx) 
-                py_bst = tup_tree(tree[:n_inserted+4])
+                py_bst = tup_tree(tree[:n_inserted+n_node])
                 after_ixy_idxes = all_ixy_idxes(py_bst)
                 assert idx not in after_ixy_idxes, \
                     f'{idx} not in {after_ixy_idxes} \n {before_bst} \n {py_bst}'
@@ -346,7 +352,7 @@ def test_prop__bst_delete(gen):
 
                 n_inserted -= 1
             else:
-                after_bst = tup_tree(tree[:n_inserted+4])
+                after_bst = tup_tree(tree[:n_inserted+n_node])
                 assert before_bst == after_bst,\
                     f'{before_bst} != \n {after_bst}'
                     
@@ -362,7 +368,7 @@ def test_prop__bst_delete(gen):
             f'{n_node} != {len(all_inodes(after_bst))}, after_bst = {after_bst}'
 
 
-#'''
+'''
 gen={'cmd_idxes': [1, -1],
      'del_idxes': [1],
      'ixy_map': {1: Ixy(i=1, x=1, y=1)},
@@ -470,6 +476,12 @@ gen={'cmd_idxes': [-1, -7, 6, 3, -3, 1, 4, -4, -6, 8, -2, 5, 2, 7, -8, -5],
 pprint(gen)
 test_prop__bst_delete(gen)
 print('########success########')
+gen={'cmd_idxes': [11, -10, -8, 7, 1, -9, -1, 3, 4, 10, 6, 8, 5, -7, -4, -11, -5, -6, 9, 2, -3, -2],
+     'del_idxes': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1), 2: Ixy(i=2, x=1, y=1), 3: Ixy(i=3, x=1, y=1), 4: Ixy(i=4, x=1, y=1), 5: Ixy(i=5, x=1, y=1), 6: Ixy(i=6, x=1, y=1), 7: Ixy(i=7, x=1, y=1), 8: Ixy(i=8, x=1, y=1), 9: Ixy(i=9, x=1, y=1), 10: Ixy(i=10, x=1, y=1), 11: Ixy(i=11, x=1, y=1)},
+     'ixys': [(1, 1, 1), (2, 1, 1), (3, 1, 1), (4, 1, 1), (5, 1, 1), (6, 1, 1), (7, 1, 1), (8, 1, 1), (9, 1, 1), (10, 1, 1), (11, 1, 1)]}
+pprint(gen)
+test_prop__bst_delete(gen)
 exit();
 #'''
 

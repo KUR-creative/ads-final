@@ -420,7 +420,6 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     }
     // Now, curr is idx of tree(+) or idx of ixys(-) or 0.
     
-        //PRNLd(curr); puts("");
     // Get inode(= prev) of wanted ixy.
     if(curr < 0){
         IXY ixy = ixys[-curr];
@@ -434,13 +433,6 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     }else{
         int n_ixys = ixy_indexes(
             tree, curr, ixy_idxes, prevs, stack);
-        //printf("[%d|%d]", curr, inode); puts("");
-                if(n_ixys <= 0){
-                    puts("invalid bst");
-                    //assert(n_ixys > 0);
-                }
-                    //PRNLd(n_ixys); print_arr(n_ixys, ixy_idxes);
-                    //PRNLd(n_ixys); print_arr(n_ixys, prevs);
         for(int i = 0; i < n_ixys; i++){
             if(ixy_idxes[i] == iidx){
                 inode = prevs[i];
@@ -452,7 +444,44 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     // Delete ixy(leaf) from inode.
     set_ref(tree, inode, -iidx, 0);
 
+    //*
     int parent = tree[inode].parent; 
+    while(inode != 0 &&
+          (tree[inode].left == 0 && tree[inode].right == 0)){
+        // Delete inode from parent.
+        set_ref(tree, parent, inode, 0);
+        // Overwrite inode memory with last inode(tree[n_node])
+        int last = n_node;
+        tree[inode] = tree[last];
+        n_node--;
+        // Update p, l or r of moved node from last.
+        if(inode != last){
+            const Node moved = tree[inode];
+            if(moved.parent){ 
+                set_ref(tree, moved.parent, last, inode);
+            }
+            if(moved.left){
+                set_ref(tree, moved.left, last, inode);
+            }
+            if(moved.right){
+                set_ref(tree, moved.right, last, inode);
+            }
+        }
+        // Set next inode
+        if(last != parent){ // Not changed by overwriting
+            inode = parent;
+        } // If last == parent, it overwrite parent to inode,
+          // Therefore next parent is inode. inode := inode.
+        parent = tree[inode].parent;
+    }
+    /*/
+    int parent = tree[inode].parent; 
+                    printf("====[inode=%d]====", inode);
+                    puts("");
+                    printf("p=%d l=%d r=%d ",
+                        tree[inode].parent,
+                        tree[inode].left, tree[inode].right);
+                    puts("");
     while(inode != 0 &&
           (tree[inode].left == 0 && tree[inode].right == 0)){
                     printf("----[%d]----\n", inode);
@@ -467,7 +496,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
         tree[inode] = tree[last];
         n_node--;
                     puts("----Overwritten");
-            printf("last = %d, in = %d p = %d\n", last, inode, parent);
+                    printf("last = %d, in = %d p = %d\n", last, inode, parent);
                     print_tree(n_node, tree);
         // Update p, l or r of moved node from last.
         if(inode != last){
@@ -493,70 +522,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
                     printf(" -> %d \n",inode);
         parent = tree[inode].parent;
     }
+    //*/
 
     return n_node;
-    /*
-    if(p->left && p->right){ // l <- p -> r
-        if(p->left == -want.i){
-            p->left = 0;
-        }else{
-            p->right = 0;
-        }
-    }else{ // 0 <- p -> r | l <- p -> 0
-        // remove leaf
-        if(p->left == -want.i){
-            p->left = 0;
-        }else{
-            p->right = 0;
-        }
-    // TODO: wait, no diff?
-    }
-    */
-
-    /*
-    // If empty parent
-    //if(tree[1].left == 0 && tree[1].right == 0){ 
-    // Remove useless node from tree.
-    if(p->left == 0 && p->right == 0){ 
-        // Unlink pp -> p, remove inode.
-        if(parent){
-                //parent of parent
-            Node* pp = tree + p->parent;
-            // Unlink
-            if(pp->left == parent){
-                pp->left = 0;
-            }else{
-                pp->right = 0;
-            }
-
-            if(parent != n_node){
-                // Swap parent inode with last inode
-                tree[parent] = tree[n_node];
-                Node* p_last = tree + tree[n_node].parent;
-                    //parent of last inode
-                if(p_last->left == n_node){
-                    p_last->left = parent;
-                }else{
-                    p_last->right = parent;
-                }
-            }
-            // CAUTION: p is changed.
-            n_node--;
-            assert(pp->left || pp->right);
-        }else{ 
-            // root, do nothing.
-        }
-        //p->key = 0; p->parent = 0;
-    }
-    */
-
 }
-
-                /*
-                PRNd(p->key);
-                PRNd(p->parent);
-                PRNd(p->left);
-                PRNd(p->right);
-                PRNd(parent);
-                puts("");
-                */
