@@ -80,6 +80,7 @@ void make_sparse(int len_dense, IXY dense_arr[],
 // if idx > 0, return key of node from tree.
 // if idx < 0, return key of ixy from ixys.
 // if idx = 0, return 0.
+// TODO: remove it..
 static inline
 int node_key(int idx, const Node tree[], const IXY ixys[], 
              char xORy){
@@ -368,17 +369,6 @@ int includeds2d(const Node tree[], const IXY ixys[],
     return n_ret;
 }
 
-/*
-static inline
-int* left_or_right(const Node* inode, int child_idx){
-    if(inode->left == child_idx){
-        return &(inode->left);
-    }else{
-        return &(inode->right);
-    }
-}
-*/
-
 // Change a (p|l|r) of tree[inode] to new.
 // old is value linked to tree[inode].
 //
@@ -398,6 +388,7 @@ char set_ref(Node tree[], int inode, int old, int new){
     }
     return '\0';
 }
+
 // Return number of node in tree
 // search tree by 'x', then search with 'y'.
 //  ixy_idxes, prevs, stack are just space for calc
@@ -446,14 +437,16 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
 
     //*
     int parent = tree[inode].parent; 
-    while(inode != 0 &&
-          (tree[inode].left == 0 && tree[inode].right == 0)){
+    while(inode != 0 && (tree[inode].left == 0 && 
+                         tree[inode].right == 0)){
         // Delete inode from parent.
         set_ref(tree, parent, inode, 0);
+
         // Overwrite inode memory with last inode(tree[n_node])
         int last = n_node;
         tree[inode] = tree[last];
         n_node--;
+
         // Update p, l or r of moved node from last.
         if(inode != last){
             const Node moved = tree[inode];
@@ -467,6 +460,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
                 set_ref(tree, moved.right, last, inode);
             }
         }
+
         // Set next inode
         if(last != parent){ // Not changed by overwriting
             inode = parent;

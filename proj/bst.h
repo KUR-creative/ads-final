@@ -24,6 +24,8 @@ void make_sparse(int len_dense, IXY dense_arr[],
 
 int insert(int n_node, Node tree[], char xORy,
            int iidx, IXY ixys[]);
+int delete(int n_node, Node tree[], int iidx, IXY ixys[], 
+           int ixy_idxes[], int prevs[], int stack[]);
 
 int includeds1d(const Node tree[], const IXY ixys[], 
                 char xORy, int min, int max, 
