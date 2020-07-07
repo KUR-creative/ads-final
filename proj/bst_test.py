@@ -88,7 +88,11 @@ def all_inodes(tup_tree, beg_idx=1):
         left  = inodes(tup_tree[l]) if l > 0 else []
         right = inodes(tup_tree[r]) if r > 0 else []
         return [*left, node, *right]
-    return inodes(tup_tree[beg_idx])
+    root = tup_tree[beg_idx]
+    _,_,l,r = root
+    if l == 0 and r == 0:
+        return []
+    return inodes(root)
 
 '''
 xs = (Ixy(), 
@@ -165,12 +169,14 @@ def assert_valid_bst(mode, ixy_map,
     ''' tree is bst '''
     key = prop(mode)
     # Num of leaves ixy ref = num of inserted ixys
+    '''
     #   1. Get ixy idxs from memory
             #print(':',tree[2].left, tree[2].right)
     num_leaves = sum(map(num_leaf, tree[1:n_inserted+10]))
     assert n_inserted == num_leaves, \
         'n_inserted = {} != {} = num_leaves, tree = {}'.format(
             n_inserted, num_leaves, tup_tree(tree[:n_inserted+4]))
+    '''
     # Parent must be positive value except root.
     for i,node in enumerate(tree[1:n_inserted+1]):
         assert node.parent >= 0, (n_inserted, i, pyobj(node))
@@ -265,10 +271,10 @@ def gen_bst_delete_data(draw):
 
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
-
-@given(gen_bst_delete_data())
+DBG = True
+#DBG = False
+#@given(gen_bst_delete_data())
 def test_prop__bst_delete(gen):
-    pprint(gen)
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
     mode = 'x'; cmd_idxes = gen['cmd_idxes']
 
@@ -284,19 +290,23 @@ def test_prop__bst_delete(gen):
     inserted_idxes = []
     n_inserted = 0
     #print('-----------------')
+    #pprint(gen) print(1)
     for idx in cmd_idxes:
+        before_bst = tup_tree(tree[:n_inserted+4])
+        if DBG: print(f"---- {idx} ----")########################
+        if DBG: print(f'before[{n_node}]', before_bst)###########
         if idx > 0:
             n_node = bst.insert(
                 n_node, tree, c_char(b'x'), idx, ixy_arr)
 
             n_inserted += 1
             inserted_idxes.append(idx)
+            #print('iixs',inserted_idxes)
+            #print(n_node)
 
             assert_valid_bst(
                 mode, ixy_map, ixy_arr, tree, n_inserted)
         else: # no idx = 0 case
-            print(f"---- {idx} ----")
-            before_bst = tup_tree(tree[:n_inserted+4])
             before_ixy_idxes = all_ixy_idxes(
                 tup_tree(tree[:n_inserted+4]))
             n_node = bst.delete(
@@ -321,12 +331,18 @@ def test_prop__bst_delete(gen):
                 assert before_bst == after_bst,\
                     f'{before_bst} != \n {after_bst}'
                     
-
+            after_bst = tup_tree(tree[:n_inserted+4])
+            if DBG: print(f' after[{n_node}]', after_bst)############
             assert_valid_bst(
                 mode, ixy_map, ixy_arr, tree, n_inserted)
 
+        after_bst = tup_tree(tree[:n_inserted+4])
+        if DBG: print(f' after[{n_node}]', after_bst)############
+        assert n_node == len(all_inodes(after_bst)), \
+            f'{n_node} != {len(all_inodes(after_bst))}, after_bst = {after_bst}'
 
-'''
+
+#'''
 gen={'cmd_idxes': [1, -1],
      'del_idxes': [1],
      'ixy_map': {1: Ixy(i=1, x=1, y=1)},
@@ -335,9 +351,78 @@ gen={'cmd_idxes': [-1, 1, 2, -2],
      'del_idxes': [1, 2],
      'ixy_map': {1: Ixy(i=1, x=1, y=1), 2: Ixy(i=2, x=1, y=1)},
      'ixys': [(1, 1, 1), (2, 1, 1)]}
+gen={'cmd_idxes': [2, -4, -3, 5, -6, 3, 4, -2, 6, 1, -5, -1],
+     'del_idxes': [1, 2, 3, 4, 6, 5],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1),
+      2: Ixy(i=2, x=1, y=1),
+      3: Ixy(i=3, x=1, y=1),
+      4: Ixy(i=4, x=1, y=1),
+      5: Ixy(i=5, x=1, y=1),
+      6: Ixy(i=6, x=2, y=1)},
+     'ixys': [(1, 1, 1),
+      (2, 1, 1),
+      (3, 1, 1),
+      (4, 1, 1),
+      (6, 2, 1),
+      (5, 1, 1)]}
+gen={'cmd_idxes': [-3, -7, 6, 2, -2, 3, 4, -4, -6, 8, -1, 5, 1, 7, -8, -5],
+     'del_idxes': [1, 2, 3, 4, 5, 6, 7, 8],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1),
+      2: Ixy(i=2, x=1, y=1),
+      3: Ixy(i=3, x=1, y=1),
+      4: Ixy(i=4, x=1, y=1),
+      5: Ixy(i=5, x=1, y=1),
+      6: Ixy(i=6, x=1, y=1),
+      7: Ixy(i=7, x=1, y=1),
+      8: Ixy(i=8, x=1, y=1)},
+     'ixys': [(1, 1, 1),
+      (2, 1, 1),
+      (3, 1, 1),
+      (4, 1, 1),
+      (5, 1, 1),
+      (6, 1, 1),
+      (7, 1, 1),
+      (8, 1, 1)]}
+
+gen={'cmd_idxes': [11, 8, -260, -10, -11, 6, 1, 7, 65794, -7, -33, -6, -4, -8, 12, -9, 10, -3, 9, -12, 4, -65794, 3, 5, 66049, -1, 2, 33, 260, -5, -66049, -2],
+'del_idxes': [1, 33, 12, 11, 10, 6, 9, 8, 2, 3, 7, 4, 5, 260, 65794, 66049],
+     'ixy_map': {1: Ixy(i=1, x=3, y=1),
+      2: Ixy(i=2, x=1, y=1),
+      3: Ixy(i=3, x=1, y=1),
+      4: Ixy(i=4, x=1, y=1),
+      5: Ixy(i=5, x=1, y=1),
+      6: Ixy(i=6, x=1, y=1),
+      7: Ixy(i=7, x=3, y=1),
+      8: Ixy(i=8, x=3, y=1),
+      9: Ixy(i=9, x=1, y=1),
+      10: Ixy(i=10, x=1, y=1),
+      11: Ixy(i=11, x=2, y=1),
+      12: Ixy(i=12, x=2, y=1),
+      33: Ixy(i=33, x=1, y=1),
+      260: Ixy(i=260, x=4, y=1),
+      65794: Ixy(i=65794, x=1, y=33554434),
+      66049: Ixy(i=66049, x=1, y=1)},
+     'ixys': [(1, 3, 1), (33, 1, 1), (12, 2, 1), (11, 2, 1), (10, 1, 1), (6, 1, 1), (9, 1, 1), (8, 3, 1), (2, 1, 1), (3, 1, 1), (7, 3, 1), (4, 1, 1), (5, 1, 1), (260, 4, 1), (65794, 1, 33554434), (66049, 1, 1)]}
+pprint(gen)
+test_prop__bst_delete(gen)
+print('########success########')
+gen={'cmd_idxes': [-2, 3, 2, 1, -3, -1],
+     'del_idxes': [1, 2, 3],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1),
+      2: Ixy(i=2, x=1, y=1),
+      3: Ixy(i=3, x=1, y=1)},
+     'ixys': [(1, 1, 1), (2, 1, 1), (3, 1, 1)]}
+pprint(gen)
+test_prop__bst_delete(gen)
+print('########success########')
+gen={'cmd_idxes': [-1, -9, -7, -5, 1, -8, -2, 3, 4, 10, 6, 8, 5, -10, 7, -6, 9, 2, -4, -3],
+    'del_idxes': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1), 2: Ixy(i=2, x=1, y=1), 3: Ixy(i=3, x=1, y=1), 4: Ixy(i=4, x=1, y=1), 5: Ixy(i=5, x=1, y=1), 6: Ixy(i=6, x=1, y=1), 7: Ixy(i=7, x=1, y=1), 8: Ixy(i=8, x=1, y=1), 9: Ixy(i=9, x=1, y=1), 10: Ixy(i=10, x=1, y=1)},
+     'ixys': [(1, 1, 1), (2, 1, 1), (3, 1, 1), (4, 1, 1), (5, 1, 1), (6, 1, 1), (7, 1, 1), (8, 1, 1), (9, 1, 1), (10, 1, 1)]}
+pprint(gen)
 test_prop__bst_delete(gen)
 exit();
-'''
+#'''
 
 
 #from pprint import pprint

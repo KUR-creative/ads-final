@@ -354,8 +354,18 @@ int includeds2d(const Node tree[], const IXY ixys[],
     return n_ret;
 }
 
-// if delete success then return SUCCESS.
-// else return FAILURE.
+/*
+static inline
+int* left_or_right(const Node* inode, int child_idx){
+    if(inode->left == child_idx){
+        return &(inode->left);
+    }else{
+        return &(inode->right);
+    }
+}
+*/
+
+// Return number of node in tree
 // search tree by 'x', then search with 'y'.
 //  ixy_idxes, prevs, stack are just space for calc
 int delete(int n_node, Node tree[], int iidx, IXY ixys[], 
@@ -376,7 +386,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
         split = (want.x <= k ? l : r);
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
-    PRNd(split);puts("");
+    //PRNd(split);puts("");
     
         //PRNLd(split); puts("");
     // Get parent(prev) of wanted ixy.
@@ -386,7 +396,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
             parent = prev;
         }
     }else if(split == 0){ // Do nothing.
-        return FAILURE;
+        return n_node;
     }else{
         int n_ixys = ixy_indexes(
             tree, split, ixy_idxes, prevs, stack);
@@ -415,29 +425,63 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     }
 
     // Delete ixy. Now we know parent.
-    //assert(prev > 0);
+    // parent = parent of ixy.
     Node* p = tree + parent;
-    if(p->left && p->right){ // no 0
+    if(p->left && p->right){ // l <- p -> r
         if(p->left == -want.i){
             p->left = 0;
         }else{
-            //assert(tree[parent].right == -want.i);
             p->right = 0;
         }
-    }else{ //
+    }else{ // 0 <- p -> r | l <- p -> 0 | 0 <- p -> 0
         // remove leaf
         if(p->left == -want.i){
             p->left = 0;
         }else{
-            //assert(tree[parent].right == -want.i);
             p->right = 0;
         }
-
+    // TODO: wait, no diff?
     }
 
-    // If empty root
-    if(tree[1].left == 0 && tree[1].right == 0){ 
-        //tree[1].key = 0;
+    // If empty parent
+    //if(tree[1].left == 0 && tree[1].right == 0){ 
+                /*
+                PRNd(p->key);
+                PRNd(p->parent);
+                PRNd(p->left);
+                PRNd(p->right);
+                PRNd(parent);
+                puts("");
+                */
+    // Remove useless node from tree.
+    if(p->left == 0 && p->right == 0){ 
+        // Unlink pp -> p, remove inode.
+        if(parent){
+                //parent of parent
+            Node* pp = tree + p->parent;
+            // Unlink
+            if(pp->left == parent){
+                pp->left = 0;
+            }else{
+                pp->right = 0;
+            }
+
+            if(parent != n_node){
+                // Swap parent inode with last inode
+                tree[parent] = tree[n_node];
+                Node* p_last = tree + tree[n_node].parent;
+                    //parent of last inode
+                if(p_last->left == n_node){
+                    p_last->left = parent;
+                }else{
+                    p_last->right = parent;
+                }
+            }
+            // CAUTION: p is changed.
+            n_node--;
+        }else{ 
+            // root, do nothing.
+        }
     }
 
     return n_node;

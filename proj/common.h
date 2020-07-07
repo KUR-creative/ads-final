@@ -7,12 +7,12 @@
 #define FAILURE  1
 #define MAX_LEN  1000000
 
-#define PRNd(x)  printf(#x ": %d ", x)   
-#define PRNLd(x) printf(#x ": %d \n", x)   
-#define PRNp(x)  printf(#x ": %p ", x)   
-#define PRNLp(x) printf(#x ": %p \n", x)   
-#define PRNs(s)  printf(#s ": %s ", s)   
-#define PRNLs(s) printf(#s ": %s \n", s)   
+#define PRNd(x)  do{ printf(#x ": %d ", x);   fflush(stdout); }while(0)
+#define PRNLd(x) do{ printf(#x ": %d \n", x); fflush(stdout); }while(0)
+#define PRNp(x)  do{ printf(#x ": %p ", x);   fflush(stdout); }while(0)
+#define PRNLp(x) do{ printf(#x ": %p \n", x); fflush(stdout); }while(0)
+#define PRNs(s)  do{ printf(#s ": %s ", s);   fflush(stdout); }while(0)
+#define PRNLs(s) do{ printf(#s ": %s \n", s); fflush(stdout); }while(0)
 
 #define SWAP(x, y, T) \
     do { T SWAP = x; x = y; y = SWAP; } while (0)
