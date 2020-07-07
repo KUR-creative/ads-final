@@ -195,9 +195,9 @@ def assert_valid_bst(mode, ixy_map,
     ixy_idxes = all_ixy_idxes(
         #tup_tree(tree[:n_inserted+50]))
         tup_tree(tree[:n_node+100]))
-    print('       tt',tup_tree(tree[:n_node+10]))
-    print('iidxes', ixy_idxes)
-    print('n_node =',n_node)
+    if DBG: print(f' after[{n_node}]',tup_tree(tree[:n_node+10]))
+    if DBG: print('iidxes', ixy_idxes)
+    if DBG: print('n_node =',n_node)
     # Inserted number of ixys preserved?
     no0idxes = F.compact([abs(i) for i in ixy_idxes])
     assert n_inserted == len(no0idxes), \
@@ -287,9 +287,9 @@ def gen_bst_delete_data(draw):
 
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
-DBG = True
-#DBG = False
-#@given(gen_bst_delete_data())
+#DBG = True
+DBG = False
+@given(gen_bst_delete_data())
 #@pytest.mark.skip(reason='not now')
 def test_prop__bst_delete(gen):
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
@@ -310,7 +310,7 @@ def test_prop__bst_delete(gen):
     #pprint(gen) print(1)
     for idx in cmd_idxes:
         before_bst = tup_tree(tree[:n_inserted+4])
-        if DBG: print(f"---- {idx} ----")########################
+        if DBG: print(f"\n---- {idx} ----")########################
         if DBG: print(f'before[{n_node}]', before_bst)###########
         if idx > 0:
             n_node = bst.insert(
@@ -358,7 +358,7 @@ def test_prop__bst_delete(gen):
             f'{n_node} != {len(all_inodes(after_bst))}, after_bst = {after_bst}'
 
 
-#'''
+'''
 gen={'cmd_idxes': [1, -1],
      'del_idxes': [1],
      'ixy_map': {1: Ixy(i=1, x=1, y=1)},

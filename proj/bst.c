@@ -36,6 +36,20 @@
 #include <assert.h>
 
 
+void print_tree(int n_node, Node tree[]){
+    int i;
+    for(i = 0; i < n_node + 1; i++){
+        printf("[%d %d %d] ", 
+            tree[i].parent, tree[i].left, tree[i].right);
+        if(i == 0 || i % 5 == 0){
+            puts("");
+        }
+    }
+    if(i && i % 5){
+        puts("");
+    }
+}
+
 void print_arr(int n, int arr[])
 {
     for(int i = 0; i < n; i++){
@@ -365,6 +379,25 @@ int* left_or_right(const Node* inode, int child_idx){
 }
 */
 
+// Change a (p|l|r) of tree[inode] to new.
+// old is value linked to tree[inode].
+//
+// Return where the child was attached.
+// If no change, return null char.
+static inline
+char set_ref(Node tree[], int inode, int old, int new){
+    if(tree[inode].parent == old){
+        tree[inode].parent = new;
+        return 'p';
+    }else if(tree[inode].left == old){
+        tree[inode].left = new;
+        return 'l';
+    }else if(tree[inode].right == old){
+        tree[inode].right = new;
+        return 'r';
+    }
+    return '\0';
+}
 // Return number of node in tree
 // search tree by 'x', then search with 'y'.
 //  ixy_idxes, prevs, stack are just space for calc
@@ -372,35 +405,36 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
            int ixy_idxes[], int prevs[], int stack[])
 {
     IXY want = ixys[iidx];
-    int parent = 0; // parent of want ixy.
+    int inode = 0; // inode of want ixy.
 
     // Search by x in tree.
     int prev = 0;
-    int split = 1;
-    while(split > 0 && // split is not a leaf
-          tree[split].key != want.x){ // 
-        prev = split;
-        int k = tree[split].key;
-        int l = tree[split].left; 
-        int r = tree[split].right;
-        split = (want.x <= k ? l : r);
+    int curr = 1;
+    while(curr > 0 && // curr is not a leaf
+          tree[curr].key != want.x){ // 
+        prev = curr;
+        int k = tree[curr].key;
+        int l = tree[curr].left; 
+        int r = tree[curr].right;
+        curr = (want.x <= k ? l : r);
     }
-    // Now, split is idx of tree(+) or idx of ixys(-) or 0.
-    //PRNd(split);puts("");
+    // Now, curr is idx of tree(+) or idx of ixys(-) or 0.
     
-        PRNLd(split); puts("");
-    // Get parent(prev) of wanted ixy.
-    if(split < 0){
-        IXY ixy = ixys[-split];
-        if(ixy.i == want.i){
-            parent = prev;
+        //PRNLd(curr); puts("");
+    // Get inode(= prev) of wanted ixy.
+    if(curr < 0){
+        IXY ixy = ixys[-curr];
+        if(ixy.i == iidx){
+            inode = prev;
+        }else{
+            return n_node; // Do nothing.
         }
-    }else if(split == 0){ // Do nothing.
-        return n_node;
+    }else if(curr == 0){ 
+        return n_node; // Do nothing.
     }else{
         int n_ixys = ixy_indexes(
-            tree, split, ixy_idxes, prevs, stack);
-        //printf("[%d|%d]", split, parent); puts("");
+            tree, curr, ixy_idxes, prevs, stack);
+        //printf("[%d|%d]", curr, inode); puts("");
                 if(n_ixys <= 0){
                     puts("invalid bst");
                     //assert(n_ixys > 0);
@@ -408,22 +442,57 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
                     //PRNLd(n_ixys); print_arr(n_ixys, ixy_idxes);
                     //PRNLd(n_ixys); print_arr(n_ixys, prevs);
         for(int i = 0; i < n_ixys; i++){
-            if(ixy_idxes[i] == want.i){
-                parent = prevs[i];
+            if(ixy_idxes[i] == iidx){
+                inode = prevs[i];
             }
         }
     }
-    // Now, we know parent of wanted ixy.
+    // Now, we know inode of wanted ixy.
     
-    // Delete ixy.
-    // parent = parent of ixy.
-    Node* p = tree + parent;
-    if(p->left == -iidx){
-        p->left = 0;
-    }else{
-        p->right = 0;
+    // Delete ixy(leaf) from inode.
+    set_ref(tree, inode, -iidx, 0);
+
+    int parent = tree[inode].parent; 
+    while(inode != 0 &&
+          (tree[inode].left == 0 && tree[inode].right == 0)){
+                    //printf("----[%d]----\n", inode);
+                    //puts("----before");
+                    //print_tree(n_node, tree);
+        // Delete inode from parent.
+        set_ref(tree, parent, inode, 0);
+                    //puts("----deleted");
+                    //print_tree(n_node, tree);
+        // Overwrite inode memory with last inode(tree[n_node])
+        int last = n_node;
+        tree[inode] = tree[last];
+        n_node--;
+                    //puts("----Overwritten");
+                    //print_tree(n_node, tree);
+        // Update p, l or r of moved node from last.
+        if(inode != last){
+            const Node moved = tree[inode];
+            if(moved.parent){ 
+                set_ref(tree, moved.parent, last, inode);
+            }
+            if(moved.left){
+                set_ref(tree, moved.left, last, inode);
+            }
+            if(moved.right){
+                set_ref(tree, moved.right, last, inode);
+            }
+        }
+                    //puts("----Updated");
+                    //print_tree(n_node, tree);
+                    //printf("inode = %d",inode);
+        // Set next inode
+        if(last != parent){ // Not changed by overwriting
+            inode = parent;
+        } // If last == parent, it overwrite parent to inode,
+          // Therefore next parent is inode. inode := inode.
+                    //printf(" -> %d \n",inode);
     }
 
+    return n_node;
     /*
     if(p->left && p->right){ // l <- p -> r
         if(p->left == -want.i){
@@ -479,7 +548,6 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     }
     */
 
-    return n_node;
 }
 
                 /*
