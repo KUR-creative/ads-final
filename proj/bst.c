@@ -217,14 +217,13 @@ int ixy_indexes(const Node tree[], int beg_idx,
             int left = tree[popped].left;
             if(left < 0){
                 if(prevs){ prevs[n_ixy] = popped; }
-                PRNd(popped);
-                PRNd(n_ixy);
+                //PRNd(popped); PRNd(n_ixy);
                 ixy_idxes[n_ixy++] = -left;
             }
             int right = tree[popped].right;
             if(right < 0){
                 if(prevs){ prevs[n_ixy] = popped; }
-                PRNd(popped);
+                //PRNd(popped);
                 ixy_idxes[n_ixy++] = -right;
             }else if(right > 0){
                 curr = right;
@@ -377,6 +376,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
         split = (want.x <= k ? l : r);
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
+    PRNd(split);puts("");
     
         //PRNLd(split); puts("");
     // Get parent(prev) of wanted ixy.
@@ -393,40 +393,51 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
         //printf("[%d|%d]", split, parent); puts("");
                 if(n_ixys <= 0){
                     puts("invalid bst");
-                    assert(n_ixys > 0);
+                    //assert(n_ixys > 0);
                 }
+                    //PRNLd(n_ixys); print_arr(n_ixys, ixy_idxes);
+                    //PRNLd(n_ixys); print_arr(n_ixys, prevs);
+        for(int i = 0; i < n_ixys; i++){
+            if(ixy_idxes[i] == want.i){
+                parent = prevs[i];
+            }
+        }
+        /*
         if(n_ixys == 1){
-            PRNd(prevs[0]);
+                    //PRNd(prevs[0]);
             if(ixys[ixy_idxes[0]].i == want.i){
                 parent = prevs[0]; // idx of inode
-                PRNd(n_ixys);
-                PRNd(parent);
-                puts("");
+                        //PRNd(n_ixys); PRNd(parent); puts("");
             }
         }else{
         }
+        */
     }
 
     // Delete ixy. Now we know parent.
     //assert(prev > 0);
-    if(tree[parent].left && tree[parent].right){ // no 0
-        if(tree[parent].left == -want.i){
-            tree[parent].left = 0;
+    Node* p = tree + parent;
+    if(p->left && p->right){ // no 0
+        if(p->left == -want.i){
+            p->left = 0;
         }else{
-            assert(tree[parent].right == -want.i);
-            tree[parent].right = 0;
+            //assert(tree[parent].right == -want.i);
+            p->right = 0;
         }
     }else{ //
         // remove leaf
-        if(tree[parent].left == -want.i){
-            tree[parent].left = 0;
+        if(p->left == -want.i){
+            p->left = 0;
         }else{
-            assert(tree[parent].right == -want.i);
-            tree[parent].right = 0;
+            //assert(tree[parent].right == -want.i);
+            p->right = 0;
         }
-        if(parent == 1){ // root case
-            tree[parent].key = 0;
-        }
+
+    }
+
+    // If empty root
+    if(tree[1].left == 0 && tree[1].right == 0){ 
+        //tree[1].key = 0;
     }
 
     return n_node;

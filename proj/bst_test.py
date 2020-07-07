@@ -1,6 +1,7 @@
 from ctypes import CDLL, Structure
 from ctypes import c_int, c_char
 from collections import namedtuple
+from pprint import pprint
 import random
 
 import funcy as F
@@ -165,11 +166,11 @@ def assert_valid_bst(mode, ixy_map,
     key = prop(mode)
     # Num of leaves ixy ref = num of inserted ixys
     #   1. Get ixy idxs from memory
-    num_leaves = sum(
-        map(num_leaf, tree[1:n_inserted+1]))
+            #print(':',tree[2].left, tree[2].right)
+    num_leaves = sum(map(num_leaf, tree[1:n_inserted+10]))
     assert n_inserted == num_leaves, \
-        'n_inserted = {}, tree = {}'.format(
-            n_inserted, tup_tree(tree[:n_inserted+4]))
+        'n_inserted = {} != {} = num_leaves, tree = {}'.format(
+            n_inserted, num_leaves, tup_tree(tree[:n_inserted+4]))
     # Parent must be positive value except root.
     for i,node in enumerate(tree[1:n_inserted+1]):
         assert node.parent >= 0, (n_inserted, i, pyobj(node))
@@ -265,8 +266,9 @@ def gen_bst_delete_data(draw):
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
 
-#@given(gen_bst_delete_data())
+@given(gen_bst_delete_data())
 def test_prop__bst_delete(gen):
+    pprint(gen)
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
     mode = 'x'; cmd_idxes = gen['cmd_idxes']
 
@@ -293,6 +295,8 @@ def test_prop__bst_delete(gen):
             assert_valid_bst(
                 mode, ixy_map, ixy_arr, tree, n_inserted)
         else: # no idx = 0 case
+            print(f"---- {idx} ----")
+            before_bst = tup_tree(tree[:n_inserted+4])
             before_ixy_idxes = all_ixy_idxes(
                 tup_tree(tree[:n_inserted+4]))
             n_node = bst.delete(
@@ -303,7 +307,8 @@ def test_prop__bst_delete(gen):
                 inserted_idxes.remove(-idx) 
                 py_bst = tup_tree(tree[:n_inserted+4])
                 after_ixy_idxes = all_ixy_idxes(py_bst)
-                assert idx not in after_ixy_idxes, py_bst
+                assert idx not in after_ixy_idxes, \
+                    f'{idx} not in {after_ixy_idxes} \n {before_bst} \n {py_bst}'
 
                 before_len = len(before_ixy_idxes)
                 after_len = len(after_ixy_idxes)
@@ -311,6 +316,11 @@ def test_prop__bst_delete(gen):
                 #assert before_len + 1 == after_len
 
                 n_inserted -= 1
+            else:
+                after_bst = tup_tree(tree[:n_inserted+4])
+                assert before_bst == after_bst,\
+                    f'{before_bst} != \n {after_bst}'
+                    
 
             assert_valid_bst(
                 mode, ixy_map, ixy_arr, tree, n_inserted)
@@ -321,7 +331,10 @@ gen={'cmd_idxes': [1, -1],
      'del_idxes': [1],
      'ixy_map': {1: Ixy(i=1, x=1, y=1)},
      'ixys': [(1, 1, 1)]}
-print(gen)
+gen={'cmd_idxes': [-1, 1, 2, -2],
+     'del_idxes': [1, 2],
+     'ixy_map': {1: Ixy(i=1, x=1, y=1), 2: Ixy(i=2, x=1, y=1)},
+     'ixys': [(1, 1, 1), (2, 1, 1)]}
 test_prop__bst_delete(gen)
 exit();
 '''
