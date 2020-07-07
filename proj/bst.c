@@ -388,7 +388,7 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
     //PRNd(split);puts("");
     
-        //PRNLd(split); puts("");
+        PRNLd(split); puts("");
     // Get parent(prev) of wanted ixy.
     if(split < 0){
         IXY ixy = ixys[-split];
@@ -412,28 +412,26 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
                 parent = prevs[i];
             }
         }
-        /*
-        if(n_ixys == 1){
-                    //PRNd(prevs[0]);
-            if(ixys[ixy_idxes[0]].i == want.i){
-                parent = prevs[0]; // idx of inode
-                        //PRNd(n_ixys); PRNd(parent); puts("");
-            }
-        }else{
-        }
-        */
     }
-
-    // Delete ixy. Now we know parent.
+    // Now, we know parent of wanted ixy.
+    
+    // Delete ixy.
     // parent = parent of ixy.
     Node* p = tree + parent;
+    if(p->left == -iidx){
+        p->left = 0;
+    }else{
+        p->right = 0;
+    }
+
+    /*
     if(p->left && p->right){ // l <- p -> r
         if(p->left == -want.i){
             p->left = 0;
         }else{
             p->right = 0;
         }
-    }else{ // 0 <- p -> r | l <- p -> 0 | 0 <- p -> 0
+    }else{ // 0 <- p -> r | l <- p -> 0
         // remove leaf
         if(p->left == -want.i){
             p->left = 0;
@@ -442,17 +440,11 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
         }
     // TODO: wait, no diff?
     }
+    */
 
+    /*
     // If empty parent
     //if(tree[1].left == 0 && tree[1].right == 0){ 
-                /*
-                PRNd(p->key);
-                PRNd(p->parent);
-                PRNd(p->left);
-                PRNd(p->right);
-                PRNd(parent);
-                puts("");
-                */
     // Remove useless node from tree.
     if(p->left == 0 && p->right == 0){ 
         // Unlink pp -> p, remove inode.
@@ -479,11 +471,22 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
             }
             // CAUTION: p is changed.
             n_node--;
+            assert(pp->left || pp->right);
         }else{ 
             // root, do nothing.
         }
+        //p->key = 0; p->parent = 0;
     }
+    */
 
     return n_node;
 }
 
+                /*
+                PRNd(p->key);
+                PRNd(p->parent);
+                PRNd(p->left);
+                PRNd(p->right);
+                PRNd(parent);
+                puts("");
+                */
