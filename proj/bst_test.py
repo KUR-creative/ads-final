@@ -195,7 +195,9 @@ def assert_valid_bst(mode, ixy_map,
     ixy_idxes = all_ixy_idxes(
         #tup_tree(tree[:n_inserted+50]))
         tup_tree(tree[:n_node+100]))
-    if DBG: print(f' after[{n_node}]',tup_tree(tree[:n_node+10]))
+    if DBG: print(f' after[{n_node}]',#tup_tree(tree[:n_node+10]))
+                [f'{p} {l} {r}' for _,p,l,r in 
+                tup_tree(tree[:n_node+10])])###########
     if DBG: print('iidxes', ixy_idxes)
     if DBG: print('n_node =',n_node)
     # Inserted number of ixys preserved?
@@ -287,9 +289,9 @@ def gen_bst_delete_data(draw):
 
     return dict(ixys=ixys, del_idxes=ixy_idxes, 
                 ixy_map=ixy_map, cmd_idxes=cmd_idxes)
-#DBG = True
-DBG = False
-@given(gen_bst_delete_data())
+DBG = True
+#DBG = False
+#@given(gen_bst_delete_data())
 #@pytest.mark.skip(reason='not now')
 def test_prop__bst_delete(gen):
     ixys, ixy_map = gen['ixys'], gen['ixy_map']
@@ -311,7 +313,8 @@ def test_prop__bst_delete(gen):
     for idx in cmd_idxes:
         before_bst = tup_tree(tree[:n_inserted+4])
         if DBG: print(f"\n---- {idx} ----")########################
-        if DBG: print(f'before[{n_node}]', before_bst)###########
+        if DBG: print(f'before[{n_node}]', 
+                [f'{p} {l} {r}' for _,p,l,r in before_bst])###########
         if idx > 0:
             n_node = bst.insert(
                 n_node, tree, c_char(b'x'), idx, ixy_arr)
@@ -353,12 +356,13 @@ def test_prop__bst_delete(gen):
 
         #after_bst = tup_tree(tree[:n_node+100])
         after_bst = tup_tree(tree[:n_node+10])
-        if DBG: print(f' after[{n_node}]', after_bst)############
+        if DBG: print(f' after[{n_node}]',
+                [f'{p} {l} {r}' for _,p,l,r in after_bst])###########
         assert n_node == len(all_inodes(after_bst)), \
             f'{n_node} != {len(all_inodes(after_bst))}, after_bst = {after_bst}'
 
 
-'''
+#'''
 gen={'cmd_idxes': [1, -1],
      'del_idxes': [1],
      'ixy_map': {1: Ixy(i=1, x=1, y=1)},
@@ -442,7 +446,30 @@ gen={'cmd_idxes': [4, -8, -6, 5, 2, -7, -2, 9, 10, 8, 1, 6, 11, -5, -10, -4, -11
      'del_idxes': [2, 3, 9, 10, 11, 1, 5, 6, 7, 8, 4],
      'ixy_map': {1: Ixy(i=1, x=1, y=1), 2: Ixy(i=2, x=1, y=1), 3: Ixy(i=3, x=1, y=1), 4: Ixy(i=4, x=2, y=1), 5: Ixy(i=5, x=1, y=1), 6: Ixy(i=6, x=3, y=1), 7: Ixy(i=7, x=1, y=1), 8: Ixy(i=8, x=1, y=1), 9: Ixy(i=9, x=4, y=1), 10: Ixy(i=10, x=2, y=1), 11: Ixy(i=11, x=4, y=1)},
      'ixys': [(2, 1, 1), (3, 1, 1), (9, 4, 1), (10, 2, 1), (11, 4, 1), (1, 1, 1), (5, 1, 1), (6, 3, 1), (7, 1, 1), (8, 1, 1), (4, 2, 1)]}
+pprint(gen)
 test_prop__bst_delete(gen)
+print('########success########')
+gen={'cmd_idxes': [-1, -7, 6, 3, -3, 1, 4, -4, -6, 8, -2, 5, 2, 7, -8, -5],
+     'del_idxes': [2, 3, 1, 4, 5, 6, 7, 8],
+     'ixy_map': {1: Ixy(i=1, x=2, y=1),
+      2: Ixy(i=2, x=1, y=1),
+      3: Ixy(i=3, x=1, y=1),
+      4: Ixy(i=4, x=1, y=1),
+      5: Ixy(i=5, x=1, y=1),
+      6: Ixy(i=6, x=1, y=1),
+      7: Ixy(i=7, x=1, y=1),
+      8: Ixy(i=8, x=1, y=1)},
+     'ixys': [(2, 1, 1),
+      (3, 1, 1),
+      (1, 2, 1),
+      (4, 1, 1),
+      (5, 1, 1),
+      (6, 1, 1),
+      (7, 1, 1),
+      (8, 1, 1)]}
+pprint(gen)
+test_prop__bst_delete(gen)
+print('########success########')
 exit();
 #'''
 
