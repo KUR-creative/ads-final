@@ -15,6 +15,8 @@ int stack[MAX_LEN]; // Used in query, delete.
 int prevs[MAX_LEN]; // Used in delete.
 int ixy_idxes[MAX_LEN]; // Used in query, delete.
 
+//Node tree2[MAX_LEN*20];
+
 int main(int argc, char* argv[]){
     //read_inp("../data/pin_1.txt", ixys, xyrs);
     //char* inp_path = "../data/pin_1.txt";

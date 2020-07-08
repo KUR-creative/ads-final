@@ -67,21 +67,6 @@ def tup_tree(tree): return F.lmap(cobj2tuple, tree)
 def is_tup_leaf(node):
     v,p,l,r = node
     return l <= 0 and r <= 0
-'''
-def all_ixy_idxes(tup_tree, beg_idx=1):
-    def tup_or_empty(i):
-        return (i,) if i else ()
-    def leaf(l, r):
-        return (tup_or_empty(l) + tup_or_empty(r))
-    def node_or_leaf(i):
-        return(ixy_idxes(tup_tree[i]) if i > 0 
-          else tup_or_empty(i))
-    def ixy_idxes(node):
-        v,p,l,r = node
-        return(leaf(l, r) if is_tup_leaf(node)
-          else node_or_leaf(l) + node_or_leaf(r))
-    return ixy_idxes(tup_tree[beg_idx])
-'''
 
 def all_inodes(tup_tree, beg_idx=1):
     def inodes(node):
@@ -183,19 +168,11 @@ def assert_valid_bst(mode, ixy_map,
     ''' tree is bst '''
     key = prop(mode)
     # Num of leaves ixy ref = num of inserted ixys
-    '''
-    #   1. Get ixy idxs from memory
-            #print(':',tree[2].left, tree[2].right)
-    num_leaves = sum(map(num_leaf, tree[1:n_inserted+10]))
-    assert n_inserted == num_leaves, \
-        'n_inserted = {} != {} = num_leaves, tree = {}'.format(
-            n_inserted, num_leaves, tup_tree(tree[:n_inserted+4]))
-    '''
     # Parent must be positive value except root.
     for i,node in enumerate(tree[1:n_inserted+1]):
         assert node.parent >= 0, (n_inserted, i, pyobj(node))
                                
-    #   2. Get ixy idxes from tree structure
+    #   Get ixy idxes from tree structure
     ixy_idxes = all_ixy_idxes(
         #tup_tree(tree[:n_inserted+50]))
         tup_tree(tree[:n_node+100]))
@@ -484,11 +461,6 @@ pprint(gen)
 test_prop__bst_delete(gen)
 exit();
 #'''
-
-
-#from pprint import pprint
-#pprint(gen_bst_delete_data().example())
-
 
 def bst_tree(ixys, xORy):
     '''
@@ -801,34 +773,3 @@ def test_prop__range_query2d(gen):
         assert ixy_arr[i1].x <= ixy_arr[i2].x
     assert n_included == len(includeds), \
         f'{n_included} != {len(includeds)}, {tup_bst}'
-
-#@pytest.mark.skip(reason='not now')
-#@settings(max_examples=10000)
-@given(gen_range_query2d_data())
-def test_prop__range_query2d(gen):
-    ixys = gen['ixys']
-    min_x = gen['min_x']; max_x = gen['max_x']
-    min_y = gen['min_y']; max_y = gen['max_y']
-    includeds = gen['includeds']
-
-    n_node, ixy_arr, c_bst, n_inserted = \
-        bst_tree(ixys, c_char('x'.encode()))
-    tup_bst = tup_tree(c_bst[:n_inserted+4])
-
-    ixy_idxes = (c_int * n_inserted)()
-    stack = (c_int * MAX_LEN)()
-    n_included = bst.includeds2d(
-        c_bst, ixy_arr, min_x, max_x, min_y, max_y, 
-        ixy_idxes, stack)
-
-    actual_idxes = [int(i) for i in ixy_idxes[:n_included]]
-    expect_idxes = F.lmap(F.first, includeds)
-    assert set(actual_idxes) == set(expect_idxes), \
-        f'{actual_idxes} != {expect_idxes}, {tup_bst}'
-    for i1, i2 in F.pairwise(actual_idxes):
-        assert ixy_arr[i1].x <= ixy_arr[i2].x
-    assert n_included == len(includeds), \
-        f'{n_included} != {len(includeds)}, {tup_bst}'
-
-#-------------------------------------------------------
-def test_prop__range_query2d(gen):
