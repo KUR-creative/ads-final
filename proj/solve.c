@@ -8,6 +8,7 @@
 // tree, ixys are data store.
 // Input: cx,cy,r.
 // Return: out_num, out_idx.
+/*
 void solve_bst1d(const Node tree[], const IXY ixys[], 
                  int idxes[], int arr[],
                  int cx, int cy, int r,
@@ -54,27 +55,6 @@ void solve_bst1d(const Node tree[], const IXY ixys[],
     int y2mm = y1md - 1;
     assert(x2mm > x1mm);
     assert(y2mm > y1mm);
-
-            /*
-            puts("========");
-            PRNd(min_x); PRNLd(max_x);
-            PRNd(min_y); PRNLd(max_y); 
-            PRNd(mid_x);
-            PRNd(mid_y);
-            PRNLd(r_sqrt2);
-            puts("----------------");
-            PRNd(x1l); PRNLd(x2l);
-            PRNd(x1m); PRNLd(x2m);
-            PRNd(x1r); PRNLd(x2r);
-            puts("--------");
-            PRNd(y1l); PRNLd(y2l);
-            PRNd(y1m); PRNLd(y2m);
-            PRNd(y1r); PRNLd(y2r);
-            puts("----------------");
-
-            assert(x2l > 0); assert(x1m > 0);
-            assert(y2l > 0); assert(y1m > 0);
-            */
 
     // Calc [left],[all]
     int n_chks = includeds2d(tree, ixys, 
@@ -123,6 +103,53 @@ void solve_bst1d(const Node tree[], const IXY ixys[],
     n_in += includeds2d(tree, ixys, 
                         x1mm,x2mm, y1mm,y2mm,
                         idxes, arr);
+    // Return n_in, min_idx.
+    *out_num = n_in;
+    *out_idx = min_idx;
+                        //PRNd(n_in); PRNLd(min_idx);
+}
+*/
+
+void solve_bst1d(const Node tree[], const IXY ixys[], 
+                 int idxes[], int arr[],
+                 int cx, int cy, int r,
+                 int* out_num, int* out_idx)
+{
+    int min_x = cx - r; //(cx - r > 1 ? cx - r : 1); 
+    int max_x = cx + r; 
+    int min_y = cy - r; //cy - r > 1 ? cy - r : 1); 
+    int max_y = cy + r;
+
+    // 2d query
+    int n_chks = includeds2d(
+        tree,ixys, min_x,max_x, min_y,max_y, idxes,arr);
+
+    // Calc max_len2, min_idx, and n_in.
+    int n_in = 0; // #ixy in circle
+    long max_len2 = 0;
+    int min_idx = MAX_LEN;
+
+    long r2 = (long)r * (long)r;
+    for(int i = 0; i < n_chks; i++){
+        int idx = idxes[i];
+        long x = (long)ixys[idx].x; 
+        long y = (long)ixys[idx].y;
+
+        long dx = x - (long)cx; 
+        long dy = y - (long)cy;
+        long dist2 = dx*dx + dy*dy;
+
+        //PRNld(dist2); PRNLld(r2);
+        if(dist2 <= r2){
+            n_in++;
+            if(dist2 >= max_len2 && idx < min_idx){
+                max_len2 = dist2;
+                min_idx = idx;
+                        //PRNd(n_in); PRNLd(min_idx);
+            }
+        }
+    }
+
     // Return n_in, min_idx.
     *out_num = n_in;
     *out_idx = min_idx;

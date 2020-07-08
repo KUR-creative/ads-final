@@ -8,7 +8,7 @@
 
  
 // Data Store
-IXY ixys[1000000];
+IXY ixys[MAX_LEN];
 Node tree[MAX_LEN];
 // Temporary space to calc somethings
 int stack[MAX_LEN]; // Used in query, delete.
@@ -59,6 +59,7 @@ int main(int argc, char* argv[]){
             int x = nums[1]; int y = nums[2];
             int r = nums[3];
             //PRNd(x); PRNd(y); PRNLd(r);
+            //for(int i = 0; i < MAX_LEN; i++)
             // Solve
             int out_num = 0; int out_idx = 0;
             solve_bst1d(
