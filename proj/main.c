@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
     FILE* inp = fopen(inp_path, "r");
     if(!inp){
         perror("File opening failed");
-        return FAILURE;
+        return 1;
     }
     FILE* out = fopen(out_path, "w");
 
@@ -38,7 +38,6 @@ int main(int argc, char* argv[]){
     // Read inp file line by line
     char buf[64] = {0,};
     while(fgets(buf, sizeof buf, inp) != NULL){
-        //PRNLd(n_node);
         int nums[4];
         line2nums(buf, nums);
         // Operate by command(+/-/?)
@@ -62,33 +61,12 @@ int main(int argc, char* argv[]){
         case '?': {
             int x = nums[1]; int y = nums[2];
             int r = nums[3];
-            //PRNd(x); PRNd(y); PRNLd(r);
 
-            //puts("----");
-            //print_tree(n_node, tree);
-            //puts("");
-            /*
-            long r2 = (long)r * (long)r;
-            for(int i = 0; i < MAX_LEN; i++){
-                IXY ixy = ixys[i];
-                if(ixy.i != 0){ 
-                    long ix = (long)ixy.x; 
-                    long iy = (long)ixy.y;
-                    long dx = ix - (long)x; 
-                    long dy = iy - (long)y;
-                    long dist2 = dx*dx + dy*dy;
-                    if(dist2 <= r2){
-                        PRNd(i); PRNld(r2); PRNLld(dist2);
-                    }
-                }
-            }
-            */
             // Solve
             int out_num = 0; int out_idx = 0;
             solve_bst1d(
                 tree, ixys, ixy_idxes, stack,
                 x, y, r, &out_num, &out_idx);
-                      //PRNd(nums[1]); PRNd(nums[2]); PRNLd(nums[3]);
             if(out_num){
                 fprintf(out, "%d %d\n", out_num, out_idx);
             }else{

@@ -5,7 +5,7 @@
 //Support Operations
 // insert(ixy)
 // delete(ixy)
-// range_search(maybe other module?)
+// range_search()
 // all_nodes(inorder walk)
 // all_leaves(ixys)
 
@@ -22,14 +22,11 @@
 // range_search property
 
 //Structure
-// Use array<val,left,right,parent> to hold nodes
+// Use array<key,left,right,parent> to hold nodes
 // inode struct points inode or elems in ixys.
 // point reference is index of array.
 // if neg idx, ref leaf. pos val, ref inode.
 // inode holds split key of x or y.(how to generalize?)
-
-// naive
-// treap
 
 #include <stdlib.h>
 #include "bst.h"
@@ -234,13 +231,11 @@ int ixy_indexes(const Node tree[], int beg_idx,
             int left = tree[popped].left;
             if(left < 0){
                 if(prevs){ prevs[n_ixy] = popped; }
-                //PRNd(popped); PRNd(n_ixy);
                 ixy_idxes[n_ixy++] = -left;
             }
             int right = tree[popped].right;
             if(right < 0){
                 if(prevs){ prevs[n_ixy] = popped; }
-                //PRNd(popped);
                 ixy_idxes[n_ixy++] = -right;
             }else if(right > 0){
                 curr = right;
@@ -273,7 +268,6 @@ int includeds1d(const Node tree[], const IXY ixys[],
     }
     // Now, split is idx of tree(+) or idx of ixys(-) or 0.
     
-    //PRNd(split);puts("");
     if(split < 0){
         int k = KEY(ixys[-split], xORy);
         if(min <= k && k <= max){
@@ -437,7 +431,6 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
     // Delete ixy(leaf) from inode.
     set_ref(tree, inode, -iidx, 0);
 
-    //*
     int parent = tree[inode].parent; 
     while(inode != 0 && (tree[inode].left == 0 && 
                          tree[inode].right == 0)){
@@ -470,55 +463,6 @@ int delete(int n_node, Node tree[], int iidx, IXY ixys[],
           // Therefore next parent is inode. inode := inode.
         parent = tree[inode].parent;
     }
-    /*/
-    int parent = tree[inode].parent; 
-                    printf("====[inode=%d]====", inode);
-                    puts("");
-                    printf("p=%d l=%d r=%d ",
-                        tree[inode].parent,
-                        tree[inode].left, tree[inode].right);
-                    puts("");
-    while(inode != 0 &&
-          (tree[inode].left == 0 && tree[inode].right == 0)){
-                    printf("----[%d]----\n", inode);
-                    puts("----before");
-                    print_tree(n_node, tree);
-        // Delete inode from parent.
-        set_ref(tree, parent, inode, 0);
-                    puts("----deleted");
-                    print_tree(n_node, tree);
-        // Overwrite inode memory with last inode(tree[n_node])
-        int last = n_node;
-        tree[inode] = tree[last];
-        n_node--;
-                    puts("----Overwritten");
-                    printf("last = %d, in = %d p = %d\n", last, inode, parent);
-                    print_tree(n_node, tree);
-        // Update p, l or r of moved node from last.
-        if(inode != last){
-            const Node moved = tree[inode];
-            if(moved.parent){ 
-                set_ref(tree, moved.parent, last, inode);
-            }
-            if(moved.left){
-                set_ref(tree, moved.left, last, inode);
-            }
-            if(moved.right){
-                set_ref(tree, moved.right, last, inode);
-            }
-        }
-                    puts("----Updated");
-                    print_tree(n_node, tree);
-                    printf("inode = %d",inode);
-        // Set next inode
-        if(last != parent){ // Not changed by overwriting
-            inode = parent;
-        } // If last == parent, it overwrite parent to inode,
-          // Therefore next parent is inode. inode := inode.
-                    printf(" -> %d \n",inode);
-        parent = tree[inode].parent;
-    }
-    //*/
 
     return n_node;
 }
