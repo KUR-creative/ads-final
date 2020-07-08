@@ -19,9 +19,11 @@ int main(int argc, char* argv[]){
     //read_inp("../data/pin_1.txt", ixys, xyrs);
     //char* inp_path = "../data/pin_1.txt";
     char* inp_path = (
-        argc == 1 ? "../data/pin_2.txt" : argv[1]);
+        //argc == 1 ? "../data/pin_2.txt" : argv[1]);
+        argc == 1 ? "../dat/2_2q.inp" : argv[1]);
     char* out_path = (
-        argc <= 2 ? "pout.txt" : argv[2]);
+        //argc <= 2 ? "pout.txt" : argv[2]);
+        argc <= 2 ? "chk.out" : argv[2]);
 
     FILE* inp = fopen(inp_path, "r");
     if(!inp){
@@ -49,17 +51,38 @@ int main(int argc, char* argv[]){
             break;
         }
         case '-': {
-            int iidx = del_ixy(nums, ixys); 
+            //int iidx = del_ixy(nums, ixys); 
+            int iidx = nums[1];
             n_node = delete(
                 n_node, tree, iidx, ixys, 
                 ixy_idxes, prevs, stack);
+            del_ixy(nums, ixys); 
             break;
         }
         case '?': {
             int x = nums[1]; int y = nums[2];
             int r = nums[3];
             //PRNd(x); PRNd(y); PRNLd(r);
-            //for(int i = 0; i < MAX_LEN; i++)
+
+            //puts("----");
+            //print_tree(n_node, tree);
+            //puts("");
+            /*
+            long r2 = (long)r * (long)r;
+            for(int i = 0; i < MAX_LEN; i++){
+                IXY ixy = ixys[i];
+                if(ixy.i != 0){ 
+                    long ix = (long)ixy.x; 
+                    long iy = (long)ixy.y;
+                    long dx = ix - (long)x; 
+                    long dy = iy - (long)y;
+                    long dist2 = dx*dx + dy*dy;
+                    if(dist2 <= r2){
+                        PRNd(i); PRNld(r2); PRNLld(dist2);
+                    }
+                }
+            }
+            */
             // Solve
             int out_num = 0; int out_idx = 0;
             solve_bst1d(

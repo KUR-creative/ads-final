@@ -36,11 +36,13 @@
 #include <assert.h>
 
 
-void print_tree(int n_node, Node tree[]){
+void print_tree(int n_node, Node tree[])
+{
     int i;
     for(i = 0; i < n_node + 1; i++){
-        printf("[%d %d %d] ", 
-            tree[i].parent, tree[i].left, tree[i].right);
+        //printf("[%d %d %d] ", tree[i].parent, tree[i].left, tree[i].right);
+        printf("[%d %d %d %d] ", 
+                tree[i].key, tree[i].parent, tree[i].left, tree[i].right);
         if(i == 0 || i % 5 == 0){
             puts("");
         }

@@ -801,3 +801,34 @@ def test_prop__range_query2d(gen):
         assert ixy_arr[i1].x <= ixy_arr[i2].x
     assert n_included == len(includeds), \
         f'{n_included} != {len(includeds)}, {tup_bst}'
+
+#@pytest.mark.skip(reason='not now')
+#@settings(max_examples=10000)
+@given(gen_range_query2d_data())
+def test_prop__range_query2d(gen):
+    ixys = gen['ixys']
+    min_x = gen['min_x']; max_x = gen['max_x']
+    min_y = gen['min_y']; max_y = gen['max_y']
+    includeds = gen['includeds']
+
+    n_node, ixy_arr, c_bst, n_inserted = \
+        bst_tree(ixys, c_char('x'.encode()))
+    tup_bst = tup_tree(c_bst[:n_inserted+4])
+
+    ixy_idxes = (c_int * n_inserted)()
+    stack = (c_int * MAX_LEN)()
+    n_included = bst.includeds2d(
+        c_bst, ixy_arr, min_x, max_x, min_y, max_y, 
+        ixy_idxes, stack)
+
+    actual_idxes = [int(i) for i in ixy_idxes[:n_included]]
+    expect_idxes = F.lmap(F.first, includeds)
+    assert set(actual_idxes) == set(expect_idxes), \
+        f'{actual_idxes} != {expect_idxes}, {tup_bst}'
+    for i1, i2 in F.pairwise(actual_idxes):
+        assert ixy_arr[i1].x <= ixy_arr[i2].x
+    assert n_included == len(includeds), \
+        f'{n_included} != {len(includeds)}, {tup_bst}'
+
+#-------------------------------------------------------
+def test_prop__range_query2d(gen):

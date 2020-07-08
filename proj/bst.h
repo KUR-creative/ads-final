@@ -17,6 +17,7 @@ typedef struct {
 #define KEY(ixy, mode) \
     (((mode) == 'x') ? (ixy).x : (ixy).y)
 
+void print_tree(int n_node, Node tree[]);
 void print_arr(int n, int arr[]);
 void print_stack(int top, int stack[]);
 void make_sparse(int len_dense, IXY dense_arr[], 

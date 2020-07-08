@@ -142,14 +142,16 @@ void solve_bst1d(const Node tree[], const IXY ixys[],
         //PRNld(dist2); PRNLld(r2);
         if(dist2 <= r2){
             n_in++;
-            if(dist2 >= max_len2 && idx < min_idx){
+            if(dist2 > max_len2 ||
+               (dist2 == max_len2 && idx < min_idx)){
                 max_len2 = dist2;
                 min_idx = idx;
-                        //PRNd(n_in); PRNLd(min_idx);
             }
+                        //PRNd(n_in); PRNLd(min_idx);
         }
     }
 
+    //print_arr(n_in, idxes);
     // Return n_in, min_idx.
     *out_num = n_in;
     *out_idx = min_idx;
