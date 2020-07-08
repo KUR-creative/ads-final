@@ -14,9 +14,6 @@ typedef struct {
 } Node;
 // Binary Search Tree is array of Node.
 
-#define KEY(ixy, mode) \
-    (((mode) == 'x') ? (ixy).x : (ixy).y)
-
 void print_tree(int n_node, Node tree[]);
 void print_arr(int n, int arr[]);
 void print_stack(int top, int stack[]);

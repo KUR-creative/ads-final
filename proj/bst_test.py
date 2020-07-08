@@ -38,6 +38,7 @@ class IXY(Structure):
     _fields_ = list(zip(IXY_props, F.repeat(c_int)))
 Ixy = namedtuple('Ixy', IXY_props, defaults=[0,0,0])
 
+#--------------------------------------------------------
 PROPS = {NODE: NODE_props, IXY: IXY_props}
 PYTYPE = {NODE: Node, IXY: Ixy}
 

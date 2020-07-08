@@ -15,10 +15,13 @@
 #define PRNs(s)   do{ printf(#s ": %s ", s);   fflush(stdout); }while(0)
 #define PRNLs(s)  do{ printf(#s ": %s \n", s); fflush(stdout); }while(0)
 
+#define KEY(ixy, mode) \
+    (((mode) == 'x') ? (ixy).x : (ixy).y)
 
 typedef struct {
     int i, x, y; // i = 0 means no ixy
 } IXY;
+
 
 void line2nums(char buf[], int nums[4]);
 
