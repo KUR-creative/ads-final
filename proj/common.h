@@ -32,6 +32,11 @@ int read_inp(const char* path, IXY ixys[], XYR xyrs[]);
 long d_sub_r(long x, long y, long cx, long cy, long r);
 int solve_n_square(const IXY ixys[], XYR xyrs[]);
 
+void line2nums(char buf[], int nums[4]);
+
+int set_ixy(int nums[4], IXY ixys[]);
+int del_ixy(int nums[4], IXY ixys[]);
+
 void print_ixys(const IXY ixys[], int len, const char* sep);
 void print_xyrs(const XYR xyrs[], int len, const char* sep);
 

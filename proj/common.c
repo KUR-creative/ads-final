@@ -21,15 +21,20 @@ inline long d_sub_r(long x, long y, long cx, long cy, long r)
 
 // 동일한 index가 있을 수 있나?
 // 인덱스는 다르지만 좌표는 같을 수 있나?(아마 이거일 것)
-void set_ixy(int nums[4], IXY ixys[]) { // +
+int set_ixy(int nums[4], IXY ixys[]) // +
+{
     int i = nums[1]; ixys[i].i = i;
     int x = nums[2]; ixys[i].x = x;
     int y = nums[3]; ixys[i].y = y;
+    return i;
 }
-void del_ixy(int nums[4], IXY ixys[]) { // -
+int del_ixy(int nums[4], IXY ixys[]) // -
+{
     int i = nums[1]; ixys[i].i = 0; // i = 0 means no ixy
+    return i;
 }
-void set_xyr(int nums[4], XYR xyrs[], int idx) { // ?
+void set_xyr(int nums[4], XYR xyrs[], int idx) // ?
+{
     int x = nums[1]; xyrs[idx].x = x;
     int y = nums[2]; xyrs[idx].y = y;
     int r = nums[3]; xyrs[idx].r = r; // r = 0 means no xyr
@@ -38,7 +43,7 @@ void set_xyr(int nums[4], XYR xyrs[], int idx) { // ?
 
 int tok2int(const char* tok) {
     if(tok == NULL){ return -1; }
-  printf("[%s]", tok);
+  //printf("[%s]", tok);
     switch(tok[0]){
         case '+':
         case '-':
@@ -49,17 +54,18 @@ int tok2int(const char* tok) {
 }
 
 // first number is (int)char: type of line.
-void buf2nums(char buf[], int nums[4]) {
+void line2nums(char buf[], int nums[4]) 
+{
     char* tok = strtok(buf, " ");
     int idx = 0;
     while(tok) {
         nums[idx++] = tok2int(tok);
         tok = strtok(NULL, " ");
     }
-    printf("\n---- %d %d %d %d ---- \n", 
-            nums[0], nums[1], nums[2], nums[3]);
+    //printf("\n---- %d %d %d %d ---- \n", nums[0], nums[1], nums[2], nums[3]);
 }
 
+// TODO: Remove it.
 int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[])
 {
     char buf[64] = {0,};
@@ -67,7 +73,7 @@ int read_inp_f(FILE* fp, IXY ixys[], XYR xyrs[])
     while(fgets(buf, sizeof buf, fp) != NULL){
         int nums[4];
         //PRNs(buf); puts("----------");
-        buf2nums(buf, nums);
+        line2nums(buf, nums);
         //printf(":->  %c %d %d %d \n", (char)nums[0], nums[1], nums[2], nums[3]);
         char type = (char)nums[0];
         switch(type){
@@ -158,3 +164,4 @@ int solve_n_square(const IXY ixys[], XYR xyrs[])
     }
     return SUCCESS;
 }
+

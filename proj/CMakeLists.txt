@@ -15,7 +15,7 @@ add_executable(ptest ptest.cpp)
 target_link_libraries(ptest rapidcheck)
 
 # main
-add_executable(main main.c bst.c common.c)
+add_executable(main main.c bst.c common.c solve.c)
 
 # pyprop
 add_executable(pyprop pyprop.c rg_tree.c common.c)
