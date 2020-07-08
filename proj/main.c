@@ -18,7 +18,8 @@ int ixy_idxes[MAX_LEN]; // Used in query, delete.
 int main(int argc, char* argv[]){
     //read_inp("../data/pin_1.txt", ixys, xyrs);
     //char* inp_path = "../data/pin_1.txt";
-    char* inp_path = "../data/pin_2.txt";
+    char* inp_path = (
+        argc == 1 ? "../data/pin_2.txt" : argv[1]);
     FILE* inp = fopen(inp_path, "r");
     if(!inp){
         perror("File opening failed");
@@ -51,10 +52,9 @@ int main(int argc, char* argv[]){
             break;
         }
         case '?': {
-                      /*
-                */
             int x = nums[1]; int y = nums[2];
             int r = nums[3];
+            //PRNd(x); PRNd(y); PRNLd(r);
             // Solve
             int out_num; int out_idx;
             solve_bst1d(
