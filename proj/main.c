@@ -20,11 +20,15 @@ int main(int argc, char* argv[]){
     //char* inp_path = "../data/pin_1.txt";
     char* inp_path = (
         argc == 1 ? "../data/pin_2.txt" : argv[1]);
+    char* out_path = (
+        argc <= 2 ? "pout.txt" : argv[2]);
+
     FILE* inp = fopen(inp_path, "r");
     if(!inp){
         perror("File opening failed");
         return FAILURE;
     }
+    FILE* out = fopen(out_path, "w");
 
     // Range tree.
     int n_node = 0;
@@ -56,48 +60,23 @@ int main(int argc, char* argv[]){
             int r = nums[3];
             //PRNd(x); PRNd(y); PRNLd(r);
             // Solve
-            int out_num; int out_idx;
+            int out_num = 0; int out_idx = 0;
             solve_bst1d(
                 tree, ixys, ixy_idxes, stack,
                 x, y, r, &out_num, &out_idx);
                       //PRNd(nums[1]); PRNd(nums[2]); PRNLd(nums[3]);
+            if(out_num){
+                fprintf(out, "%d %d\n", out_num, out_idx);
+            }else{
+                fputs("0\n", out);
+            }
             break;
         }
         default: puts("DATA error or something."); abort();
         }
     }
-    
-    // read_line(which, a,b,c)
-    //
-    // which = +: 
-    //  add to ixys,
-    //  insert
-    //
-    // which = -: 
-    //  del to ixys,
-    //  if no previous - idx: skip
-    //  else delete(n_node, tree, index)
-    //
-    // which = ?: 
-    //  query2d, solve prob, write line to pout_1
-    /*
-    read_inp("./fixtures/1.inp", ixys, xyrs);
 
-    print_ixys(ixys, 10, "\n");
-    print_xyrs(xyrs, 10, "\n");
-    puts("------------");
-
-    solve_n_square(ixys, xyrs);
-    print_xyrs(xyrs, 10, "\n");
-
-    printf("start\n");
-    printf("[%d]", sizeof(int));
-    printf("[%d]", sizeof(ixys));
-    printf("[%d]", sizeof(x_sorted));
-    */
-    //printf("[%d]", sizeof(long));
-
-    //IXY* ixys = malloc(sizeof(IXY) * 1000000);
-
+    fclose(inp);
+    fclose(out);
     return 0;
 }
