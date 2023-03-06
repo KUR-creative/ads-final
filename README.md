@@ -1,10 +1,39 @@
-# Install libs and Set project
+# 빈번하게 변경되는 좌표 스트림에서 일정 반경에 속하는 좌표 구하기
+## Problem
+이 과제는 고급자료구조론 기말 고사 텀 프로젝트로, 알고리즘 문제를 주고 성능 경쟁을 했습니다. \
+문제에 대한 자세한 내용은 [문제.pdf](./Advan%2013%20-%20Final%20Challenge-b.pdf)를 참고해주세요.
+
+## Result
+| ID               | 구현        | DS                         | g1-1     | g1-2     | g1-3      | g2-1     | g2-2     | g2-3      | u-1      | u-2      | u-3       | 비고  |
+| ---------------- | --------- | -------------------------- | -------- | -------- | --------- | -------- | -------- | --------- | -------- | -------- | --------- | --- |
+| dsaf1595         | c/cpp     | Red-Black tree+Linked List | 4.06     | 0.00     | 0.00      | 2.85     | 12.17    | 62.25     | 0.00     | 15.63    | 99.70     |     |
+| **gndprop**      | **c/cpp** | **R-Tree**                 | **1.61** | **5.83** | **35.08** | **1.03** | **3.32** | **10.90** | **1.54** | **4.82** | **17.30** | 1<sup>st</sup> |
+| harisw           | c/cpp     | Red-Black tree             | 5.01     | 0.00     | 0.00      | 4.98     | 18.26    | 76.63     | 0.00     | 19.09    | 74.33     |     |
+| kkuang           | c/cpp     | Hash Table+Linked List     | 4.98     | 18.90    | 130.56    | 2.87     | 11.74    | 47.80     | 3.44     | 13.77    | 55.33     |     |
+| ninebell         | c/cpp     | K-D tree                   | 13.14    | 54.88    | 395.17    | 5.77     | 26.11    | 115.87    | 9.39     | 39.83    | 166.73    |     |
+| **thulol(mine)** | **c/cpp** | **Range tree**             | **2.28** | **9.68** | **73.18** | **1.42** | **5.97** | **25.33** | **2.15** | **8.97** | **35.64** | 2<sup>nd</sup> |
+| tjwldnjss13      | c/cpp     | STL-map, multimap          | 302.74   | 1133.82  | 7833.72   | 175.23   | 716.57   | 2930.07   | 206.46   | 842.01   | 3419.38   |     |
+
+표의 수는 초 단위 수행시간입니다. `0.00`은 segmentation fault를 의미합니다. \
+데이터는 다음과 같습니다.
+- g1: 중심점이 하나인 gauss 분포
+- g2: 중심점이 두개인 gauss 분포
+- u: uniform 분포
+
+
+직접 구현해도 되고, 외부 라이브러리를 써도 되도 되는 과제였습니다. \
+저는 전체에서 **2위**를 했으며 **직접 구현한 사람들 중에서는 1위**를 했습니다.
+
+자세한 내용은 [xlsx파일](./ADS%20test/AvDS2020%20-%20결과취합(공개).xlsx)과 [보고서](./final_report.pdf)를 참고해주세요.
+
+## Run
+### Install libs and Set project
 `cd proj` \
 `git clone https://github.com/emil-e/rapidcheck.git` \
 `cmake CMakeLists.txt` \
 `make` 
 
-# After installation
+### After installation
 Update src file list in ./CMakeLists.txt \
 `make  # build` \
 `./test   # unit test` \
